@@ -1,0 +1,28 @@
+\subsection{Publicly Verifiable Secret Sharing (PVSS)}
+Publicly verifiable secret sharing schemes~\cite{first_pvss_chor, pvss_stadler, pvss_schoenmakers,pvss_paillier_ruiz,pvss_pairings_heidervand,pvss_scrape} are augmentations of threshold secret sharing schemes such that any verifier $V$ (who does not need to be the dealer or part of the committee) can verify that the secret shares are valid.
+PVSS schemes generally follow the steps below~\cite{pvss_scrape}:
+\begin{itemize}
+    \item \textbf{Setup}:
+    Given a security parameter $\lambda$, each participant $p_i$ calls $\textsf{Gen}(1^{\lambda})$ to generate a public-private key pair $(pk_i, sk_i)$ and shares $pk_i$ with $D$.
+    \item \textbf{Distribution}:
+    The dealer calls $\textsf{genDist}(s, pk)$ to generate shares $s_1, \dots, s_n$ and encrypts each share $s_i$ with $pk_i$ to produce $\hat{s}_i$.
+    The dealer also generates and broadcasts a proof $\pi_D$ that the broadcasted encrypted shares are valid and consistent.
+    \item \textbf{Verification}:
+    Any external verifier $V$ calls $\textsf{verifyDist}(\hat{s}, pk, \pi_D)$ non-interactively verifies, using all publicly available information, that the encrypted shares are consistent with one another.
+    \item \textbf{Reconstruction}:
+        \begin{itemize}
+            \item Each $p_i$ publishes $\hat{s}_i' = \textsf{decrypt}(\hat{s}_i, sk_i)$, along with a proof $\pi_i$ that $\hat{s}_i' = s_i$.
+            \item $V$ calls $\textsf{verifyShare}(i, \hat{s}_i, \hat{s}_i', \pi_i)$ for every participant's contribution to verify that all $\hat{s}_i' = s_i$.
+            \item With all shares known, anybody can call $\textsf{reconstruct}(s_{i_1}, \dots, s_{i_t})$ on the revealed shares to obtain the secret $s$.
+        \end{itemize} 
+\end{itemize}
+
+PVSS schemes generally have the following properties~\cite{pvss_pairings_heidervand}:
+\begin{itemize}
+    \item \textbf{Correctness}:
+    If the dealer is honest and a set of at least $t$ parties are honest, then \textsf{verifyDist} passes during distribution, \textsf{verifyShare} passes during reconstruction for all honest parties, and \textsf{reconstruct} yields the original secret.
+    \item \textbf{Verifiability}:
+    If \textsf{verifyDist} passes, then $\hat{s}_i$ are consistent secret shares with overwhelming probability, and if \textsf{verifyShare} passes, then $\hat{s}_i'= s_i$ with overwhelming probability.
+    \item \textbf{Secrecy}:
+    Prior to reconstruction, any set of at most $t - 1$ participants cannot learn any information about the secret.
+\end{itemize}

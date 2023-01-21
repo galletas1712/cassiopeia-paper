@@ -1,0 +1,16 @@
+\subsection{Zero-Knowledge Succinct Non-Interactive Argument of Knowledge (zkSNARK)}
+Let $C$ be an efficiently computable boolean circuit.
+We define the relation $\mathcal{R}_C = \{(x_C, w_C) \mid C(x_C, w_C) = 1 \}$, where $(x_C, w_C)$ is an instance-witness pair.
+A zkSNARK consists of a triple of probablistic polynomial time algorithms $(G, P, V)$ as follows~\cite{snark_defn,groth_snark}:
+\begin{itemize}
+    \item $G$ is a generator that, upon receiving a security parameter input $\lambda$, generates a \emph{reference string} $\sigma$ and a \emph{verification state} $\tau$.
+    \item A prover $P(\sigma, x_C, w_C)$ that outputs a proof $\pi$ for the instance $x_C$ and the witness $w_C$.
+    \item A verifier $V(\sigma, x_C, \pi)$ that outputs 1 if the proof is valid and 0 otherwise.
+\end{itemize}
+
+zkSNARKs have the following properties:
+\begin{itemize}
+    \item \textbf{Correctness}: An honestly-generated proof $\pi$ is always accepted by an honest verifier $V$.
+    \item \textbf{Soundness}: A proof $\pi$ generated with an invalid witness will not be accepted by an honest verifier $V$ with overwhelming probability.
+    \item \textbf{Zero Knowledge}: The interaction between prover and verifier reveals negligible information about the witness.
+\end{itemize}

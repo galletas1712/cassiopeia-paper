@@ -1,0 +1,35 @@
+\section{Analysis}
+We assume a synchronous network model where there exists a probablistic polynomial time adversary.
+The adversarial controls some committee members, which can do whatever they like.
+\begin{definition}{Social Witness Encryption Correctness.}
+    Suppose an honest dealer runs Algorithm \ref{dealer_alg_no_incentives} for a message $m$ and an instance $x$ for a relation $\mathcal{R}$.
+    The Social Witness Encryption protocol is correct if $m$ can be obtained in finite time after a valid witness $w$ is provided for decryption.
+\end{definition}
+\begin{theorem}
+    Consider an honest dealer, and a committee of size $n$ such that at least $t$ are honest.
+    Let \textsf{PVSS} = (\textsf{genDist}, \textsf{verifyDist}, \textsf{decrypt}, \textsf{verifyShare}, \textsf{reconstruct}) be a correct PVSS scheme,
+    $(G, P, V)$ be a correct zkSNARK scheme, $(Enc, Dec)$ be a correct symmetric encryption scheme,
+    $\mathbb{L}$ be a safe and live ledger, and $H$ be a random oracle.
+    The Social Witness Encryption construction in Algorithm \ref{cassiopeia_no_incentives} with respect to \textsf{PVSS}, $(G, P, V)$, $(Enc, Dec)$, $\mathbb{L}$ and $H$ is correct.
+\end{theorem}
+\begin{proof}
+    By the correctness of PVSS, an honestly generated PVSS ciphertext $c$ using \textsf{PVSS.genDist} will always pass verification under \textsf{PVSS.verifyDist}.
+    Since $H$ is a random oracle, the identifier $i$ is unique to the ciphertext and the instance and $y$ is deterministic.
+    Furthermore, since the dealer knows the secret $s$ and the zkSNARK is correct, the honestly generated proof $\pi$ will pass verification under $V$. 
+    Since $\mathbb{L}$ is both safe and live, the dealer's transaction calling \textsf{encrypt} will be confirmed in a finite number of blocks, and the values $c, \mathcal{R}, x$ are committed to the ledger state as $C_i, R_i, X_i$.
+    Furthermore, safety and liveness of $\mathbb{L}$ means a transaction calling \textsf{claim} is only confirmed if the witness $w$ is valid for the instance $x$ of $\mathcal{R}$.
+
+    By the correctness of PVSS and honesty of the dealer, an honest committee member $j$ who calls $\textsf{PVSS.decrypt}(\hat{s}_j, sk_j)$ obtains $s_j' = s_j$.
+    Therefore, at least $t$ committee members will call \textsf{submitShare} for secret $i$ with valid decrypted shares $s_j'$ within $\Delta$ blocks of \textsf{claim} because at least $t$ committee members are honest.
+    Furthermore, \textsf{PVSS.verifyShare} will always pass since $s_j' = s_j$.
+    By the safety and liveness of $\mathbb{L}$, every honest committee member's transaction calling \textsf{submitShare} will be confirmed in a finite number of blocks, and $s_j'$ is committed to the ledger state as $S_{i,j}$.
+    Therefore, the state $S_i$ on $\mathbb{L}$ contains at least $t$ elements of $\{s_1, \dots, s_n\}$.
+    By the correctness of PVSS, $\textsf{reconstruct}(S_i) = s$.
+    By the correctness of the symmetric encryption scheme, $Dec_s(\hat{c}) = m$.
+    Therefore, $m$ is obtained in finite time after a valid witness $w$ is presented, and the scheme is correct.
+\end{proof}
+\begin{theorem}
+    Consider an honest dealer, and a committee of size $n$ such that at least $t$ are rational.
+    Assume there exists a fixed per-block risk-free rate $r$.
+    The construction with respect to \textsf{PVSS}, $(G, P, V)$, $(Enc, Dec)$, $\mathbb{L}$, $H$, and $r$ is correct.
+\end{theorem}

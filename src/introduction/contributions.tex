@@ -1,0 +1,10 @@
+\paragraph{Our Contributions.} We summarize our contributions as follows:
+\begin{enumerate}
+    \item We put forth a smart contract-based construction for Witness Encryption.
+    \item We explore whether our scheme is correct and secure under the honest majority and rational majority settings.
+    \item We implement the construction as an open-source Solidity smart contract, benchmark gas usage on Ethereum, and provide our parameterization of the scheme.
+\end{enumerate}
+
+Traditionally WE schemes require the witness to remain private during decryption.
+However, in many practical use cases, a public witness is useful as the secret does not remain hidden.
+We focus on constructing WE with public witness security, but it is possible to extend our scheme to support private decryption.

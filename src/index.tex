@@ -1,0 +1,243 @@
+\documentclass[runningheads]{llncs}
+\usepackage[english]{babel}
+
+\usepackage{cite}
+% \usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+
+\usepackage{amsmath}
+% \let\proof\relax
+% \let\endproof\relax
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\PassOptionsToPackage{hyphens}{url}\usepackage{hyperref}
+% \usepackage{hyperref}
+\usepackage{mathtools}
+\usepackage{listings}
+\usepackage{import}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{varwidth}
+\usepackage{enumitem}
+\usepackage{thmtools}
+\usepackage{thm-restate}
+
+\hyphenation{block-chain}
+\hyphenation{block-chains}
+\hyphenation{in-ter-led-ger}
+\hyphenation{pol-ka-dot}
+\hyphenation{ten-der-mint}
+\hyphenation{NI-Po-PoW}
+\hyphenation{NI-Po-PoWs}
+\hyphenation{Ethe-re-um}
+\hyphenation{de-cen-tral-ized}
+\hyphenation{de-cen-tral-ize}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+\long\def\blockcomment#1\endblockcomment{}
+\let\eps\epsilon
+\def\Let#1#2{\State $#1\gets#2$}
+\newcommand{\CommentLine}[1]{
+    \State \(\triangleright\) \textit{#1}
+}
+\newcommand{\e}{\varepsilon}
+\def\chain{\mathcal{C}}
+\def\M{\mathcal{M}}
+\def\D{\mathcal{D}}
+\def\Q{\mathcal{Q}}
+\newcommand{\vectorx}{\ensuremath{\mathbf x}}
+\def\defeq{\stackrel{\text{\tiny def}}{=}}
+\def\Let#1#2{\State $#1\gets#2$}
+\def\shrink{\mathop{\rm shrink}}
+\def\len{\mathop{\rm len}}
+\def\chain{\mathcal{C}}
+\let\rest\lceil
+\let\suffix\rceil
+\let\s\subseteq
+\def\T{\mathcal{T}}
+\def\S{\mathcal{S}}
+\def\E{\mathop{{}\mathbb{E}}}
+\def\N{\mathbb{N}}
+\def\nb{\textsc{nb}}
+\def\frc#1#2{{\textstyle\frac{#1}{#2}}}
+
+\def \ifempty#1{\def\temp{#1} \ifx\temp\empty }
+
+\algblockdefx[Contract]{Contract}{EndContract}
+[1]{\textbf{contract #1}}
+[0]{\textbf{end contract}}
+
+\algblockdefx[Payable]{Payable}{EndPayable}
+[2]{\textbf{payable function #1}\ifempty{#2}\else(#2)\fi}
+[0]{\textbf{end function}}
+
+\algblockdefx[Internal]{Internal}{EndInternal}
+[2]{\textbf{internal function #1}(#2)}
+[0]{\textbf{end function}}
+
+\newcommand{\Qed}{
+    \iftwocolumn
+    \else
+        \qed
+    \fi
+}
+
+% \algblockdefx[Operator]{Operator}{EndOperator}
+% [1]{\textbf{operator #1}}
+% [0]{\textbf{end operator}}
+
+\usepackage[]{xcolor}
+\usepackage{color}
+
+\newcommand{\ignore}[1]{}
+
+\newcommand{\upchain}{\negthickspace\uparrow}
+\newcommand{\downchain}{\negthickspace\downarrow\,}
+
+%code options with \lstlisting
+\lstset{frame=tb,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle=\ttfamily,
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3,
+  escapeinside={(*@}{@*)},
+  frame=n
+}
+\lstdefinestyle{numbers}{numbers=left, stepnumber=1, numberstyle=\tiny, numbersep=10pt}
+\let\origthelstnumber\thelstnumber
+\makeatletter
+\newcommand*\Suppressnumber{%
+  \lst@AddToHook{OnNewLine}{%
+    \let\thelstnumber\relax%
+     \advance\c@lstnumber-\@ne\relax%
+    }%
+}
+
+\newcommand*\Reactivatenumber{%
+  \lst@AddToHook{OnNewLine}{%
+   \let\thelstnumber\origthelstnumber%
+   \advance\c@lstnumber\@ne\relax}%
+}
+
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+                      {-18\p@ \@plus -4\p@ \@minus -4\p@}%
+                      {0.5em \@plus 0.22em \@minus 0.1em}%
+                      {\normalfont\normalsize\bfseries\boldmath}}
+
+\newcommand{\tx}{\textsf{tx}}
+\newcommand{\Ledger}{\mathbf{L}}
+\newcommand{\LState}{\mathsf{L}}
+\newcommand{\negl}{\textsf{negl}(\kappa)}
+\newcommand{\view}{\textsc{view}}
+\newcommand{\fullview}{\textsc{view}^{t,n}_{\Pi,\mathcal{A},\mathcal{Z}}}
+\newcommand{\validityattack}{\textsc{persistence}\textsc{-}\textsc{game}}
+\newcommand{\livenessattack}{\textsc{liveness}\textsc{-}\textsc{game}}
+\newcommand{\true}{\mathsf{true}}
+\newcommand{\false}{\mathsf{false}}
+\newcommand{\approxn}{\widetilde{n}}
+\DeclareMathOperator{\diff}{\textsf{diff}\,}
+\newcommand{\dexpand}[1]{#1_{\pm\Delta}}
+
+\newcommand{\concat}{\,\|\,}
+
+\hyphenation{log-a-rith-mic}
+\hyphenation{unique-ly}
+\hyphenation{ex-tractabil-i-ty}
+
+\algnewcommand\algorithmicon{\textbf{upon}}
+\algblockdefx[ON]{On}{EndOn}[1]
+{\algorithmicon\ #1\ \algorithmicdo}
+{\algorithmicend\ \algorithmicon}
+
+\algnewcommand\waitcommand{\textbf{wait until }}
+\def\Wait#1{\State\waitcommand #1}
+
+\def\chain{\mathcal{C}}
+\DeclareMathOperator{\Ex}{\mathbb{E}}
+
+\newcommand{\getsrandomly}{\overset{\$}{\gets}}
+
+\pagestyle{plain}
+
+\algblockdefx[Contract]{Contract}{EndContract}
+[1]{\textbf{contract #1}}
+[0]{\textbf{end contract}}
+
+\algblockdefx[Payable]{Payable}{EndPayable}
+[2]{\textbf{payable function #1}\ifempty{#2}\else(#2)\fi}
+[0]{\textbf{end function}}
+
+\algblockdefx[Internal]{Internal}{EndInternal}
+[2]{\textbf{internal function #1}(#2)}
+[0]{\textbf{end function}}
+
+\graphicspath{{./images}}
+
+\begin{document}
+\title{Cassiopeia:\\
+Practical On-Chain Witness Encryption
+}
+\author{Schwinn Saereesitthipitak \and
+Dionysis Zindros}
+\institute{Stanford University}
+%
+\maketitle              % typeset the header of the contribution
+%
+\import{./}{abstract.tex}
+\import{./}{introduction/main.tex}
+\import{./}{preliminaries/main.tex}
+\import{./}{construction.tex}
+\import{./}{construction_incentives.tex}
+\import{./}{analysis.tex}
+
+% \section{Analysis}
+
+% \begin{theorem}[Correctness]
+%     The construction in ... is correct.
+% \end{theorem}
+% \begin{proof}
+
+% \end{proof}
+
+% \begin{theorem}[Social Extractable Security]
+%     DEALER HONEST.
+%     Consider a committee of size $n$. Assume there are at least $t + 1$ honest committee members, where $t < n$. Let $H$ be a random oracle, and \textsf{PVSS} be secure PVSS scheme, \textsf{SNARK} be a secure, simulation extractable SNARK construction. The construction with respect to this committee, $H$, \textsf{PVSS}, and \textsf{SNARK} in section ... is extractably secure.
+%     % Secure ledger protocol (blockchain) - safe and live
+%     % 
+% \end{theorem}
+% \begin{proof}
+
+% \end{proof}
+
+    % Choice of t vs n; t = n/2, but other choices are available, why is this
+    % reasonable?
+    
+    % State and show three theorems:
+    
+    % <t adversarial => Security
+    % <n-t adversarial => Correctness
+    
+    % Honest Majority => Security + Correctness
+    
+% \section{Incentives}
+% Rational Majority => Correctness
+% No Assumptions => Correctness or payout
+
+% If you are an honest committee member => you will not lose any money
+
+\import{./}{implementation.tex}
+
+\bibliographystyle{abbrv}
+\bibliography{biblio}
+
+\end{document}
+
+
