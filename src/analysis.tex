@@ -5,7 +5,7 @@ The adversarial controls some committee members, which can do whatever they like
     Suppose an honest dealer runs Algorithm \ref{dealer_alg_no_incentives} for a message $m$ and an instance $x$ for a relation $\mathcal{R}$.
     The Social Witness Encryption protocol is correct if $m$ can be obtained in finite time after a valid witness $w$ is provided for decryption.
 \end{definition}
-\begin{theorem}
+\begin{theorem}\label{correctness_hm}
     Consider an honest dealer, and a committee of size $n$ such that at least $t$ are honest.
     Let \textsf{PVSS} = (\textsf{genDist}, \textsf{verifyDist}, \textsf{decrypt}, \textsf{verifyShare}, \textsf{reconstruct}) be a correct PVSS scheme,
     $(G, P, V)$ be a correct zkSNARK scheme, $(Enc, Dec)$ be a correct symmetric encryption scheme,
@@ -16,7 +16,7 @@ The adversarial controls some committee members, which can do whatever they like
     By the correctness of PVSS, an honestly generated PVSS ciphertext $c$ using \textsf{PVSS.genDist} will always pass verification under \textsf{PVSS.verifyDist}.
     Since $H$ is a random oracle, the identifier $i$ is unique to the ciphertext and the instance and $y$ is deterministic.
     Furthermore, since the dealer knows the secret $s$ and the zkSNARK is correct, the honestly generated proof $\pi$ will pass verification under $V$. 
-    Since $\mathbb{L}$ is both safe and live, the dealer's transaction calling \textsf{encrypt} will be confirmed in a finite number of blocks, and the values $c, \mathcal{R}, x$ are committed to the ledger state as $C_i, R_i, X_i$.
+    Since $\mathbb{L}$ is both safe and live, the dealer's transaction calling \textsf{encrypt} will be confirmed in a finite number of blocks, and the values $c, \mathcal{R}, x$ are committed to the ledger state.
     Furthermore, safety and liveness of $\mathbb{L}$ means a transaction calling \textsf{claim} is only confirmed if the witness $w$ is valid for the instance $x$ of $\mathcal{R}$.
 
     By the correctness of PVSS and honesty of the dealer, an honest committee member $j$ who calls $\textsf{PVSS.decrypt}(\hat{s}_j, sk_j)$ obtains $s_j' = s_j$.
@@ -33,3 +33,12 @@ The adversarial controls some committee members, which can do whatever they like
     Assume there exists a fixed per-block risk-free rate $r$.
     The construction with respect to \textsf{PVSS}, $(G, P, V)$, $(Enc, Dec)$, $\mathbb{L}$, $H$, and $r$ is correct.
 \end{theorem}
+\begin{lemma}
+    The time of value all honest committee members' net compensations are non-negative.
+\end{lemma}
+\begin{lemma}
+    The smart contract contains sufficient funds to pay insurance to the beneficiaries to all active secrets at all times.
+\end{lemma}
+\begin{proof}
+    
+\end{proof}
