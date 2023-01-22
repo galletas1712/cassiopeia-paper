@@ -2,13 +2,13 @@
 The Cassiopeia smart contract is instantiated for a fixed committee with known public keys of size $n$, and a fixed threshold $t$.
 Suppose the dealer wants to perform Social Witness Encryption with public witness security on a message $m$.
 First, the dealer chooses a relation $\mathcal{R}$ and a corresponding instance $x$.
-In practice, the pair $(\mathcal{R}, x)$ could be encoded as a smart contract function that accepts $w$ and returns 1 if $(x, w) \in \mathcal{R}$ and 0 otherwise.
+% In practice, the pair $(\mathcal{R}, x)$ could be encoded as a smart contract function that accepts $w$ and returns 1 if $(x, w) \in \mathcal{R}$ and 0 otherwise.
 Then, the dealer generates a random bit string $s$ that can be simultaneously used as the secret in a PVSS scheme and the key of a symmetric encryption scheme. % Security of symmetric encryption scheme?
 The dealer runs \textsf{PVSS.genDist}$(s)$ to generate the PVSS ciphertext $c$, which contains the encrypted secret shares for each participant $\hat{s}$, along with a proof $\pi_D$ that the generated encrypted secret shares are consistent with one another.
 Using the symmetric encryption scheme, the dealer encrypts $m$ with key $s$ to produce $\hat{c} = Enc_s(m)$.
 The dealer calls the smart contract function \textsf{Cassiopeia.encrypt} to register the ciphertext and instance on chain.
-The smart contract checks whether the ciphertext is valid, and if so, makes the encrypted secret shares available to the committee members. 
-A unique identifier for the secret $i$ is returned, which is computed by taking the hash of the ciphertext and the instance $H(c \concat \mathcal{R} \concat x)$.
+The contract checks whether the proof $\pi_D$ is valid, and if so, makes the encrypted secret shares available to the committee members. 
+A unique identifier for the secret $i$ is returned.
 Subsequently, $\hat{c}$ is dispersed publicly, either off-chain to optimize gas costs or on-chain for data availability.
 
 \begin{algorithm}[H]
@@ -16,7 +16,7 @@ Subsequently, $\hat{c}$ is dispersed publicly, either off-chain to optimize gas 
 \label{dealer_alg_no_incentives}
     \begin{algorithmic}[1]
         \Let{i}{\bot}
-        \On{\sf WEncrypt($m, \mathcal{R}, x$)}
+        \On{$\textsf{WE.Enc}_{\mathcal{R}}(1^{\lambda}, x, m)$}
             \State $s \getsrandomly \{0,1\}^{\lambda}$
             \State $\hat{c} \gets Enc_s(m)$
             \State $c \gets \textsf{PVSS.genDist}(s, \textsf{Cassiopeia}.pks)$
@@ -33,7 +33,7 @@ The smart contract checks that $w$ is indeed a valid witness such that $(x, w) \
 If so, it enables committee members to submit their (decrypted) shares by setting a flag $P_i$ that indicates secret with ID $i$ has been claimed.
 To submit their share, a committee member $j$ first decrypts their encrypted share $\hat{s}_j$ given by the dealer using \textsf{PVSS.decrypt}.
 This produces a decryption $s'_j$ and a proof $\pi$ that $s'_j$ is a valid decryption, i.e. $s'_j = s_j$.
-The committee member then submits the share by calling the smart contract function \textsf{submitShare}, which verifies the proof and stores $s'_j$ in the set of decrypted shares $S_i$ inside the smart contract.
+The committee member then submits the share by calling the smart contract function \textsf{submitShare}, which verifies the proof and stores $s'_j$ in the set of decrypted shares $S_i$ inside the contract.
 Committee members should submit their share within $\Delta$ blocks of the valid call to \textsf{claim}, where $\Delta$ is a public parameter.
 
 \begin{algorithm}[H]
@@ -43,7 +43,7 @@ Committee members should submit their share within $\Delta$ blocks of the valid 
         \Let{sk}{\text{own secret key}}
         \Let{j}{\text{index of own public key in \textsf{Cassiopeia}.$pks$}}
         \On{$\textsf{Cassiopeia.claimSecret}(i)$}
-            \State $(\hat{s}, \pi_D) \gets \textsf{Cassiopeia}.C_i$
+            \State $(\hat{s}, \pi_D) \gets \textsf{Cassiopeia}.C_i.c$
             \State $(s'_j, \pi) \gets \textsf{PVSS.decrypt}(\hat{s}_j, sk)$
             \State $\textsf{Cassiopeia.submitShare}(s'_j, \pi, i, j)$
         \EndOn
@@ -60,8 +60,9 @@ Therefore, the adversary can bypass the requirement of finding a valid witness $
 
 To mitigate this issue, we ask the dealer to provide a proof in zero knowledge that he knows $s$ and he intends to encrypt $s$ with the instance $x$.
 In particular, the dealer generates a commitment to the secret and ciphertext, tying it to $\mathcal{R}$ and $x$ by computing $y = H(s \concat c \concat \mathcal{R} \concat x)$, where $H$ is a random oracle.
-The dealer then generates a zkSNARK proof of knowledge $\pi$ of $s$ such that if the encrypted shares were decrypted and recombined, the result would be $s$, and that $y = H(s \concat c \concat \mathcal{R} \concat x)$.
+The dealer then generates a zkSNARK proof of knowledge of $s$ such that if the encrypted shares were decrypted and recombined, the result would be $s$, and that $y = H(s \concat c \concat \mathcal{R} \concat x)$.
 More formally, the proof $\pi = P(\sigma, (c, \mathcal{R}, x, y, \textsf{Cassiopeia}.pks), s)$.
+Without knowledge of $s$, an adverasial dealer cannot use the same value ciphertext $c$ with another instance $x'$.
 
 \begin{algorithm}
     \caption{zkSNARK circuit}
@@ -75,8 +76,8 @@ More formally, the proof $\pi = P(\sigma, (c, \mathcal{R}, x, y, \textsf{Cassiop
 \end{algorithm}
 
 When the dealer calls the smart contract function \textsf{Cassiopeia.encrypt}, he must include $y$ and $\pi$.
-Then, the smart contract verifies that the proof $\pi$ is valid in addition to PVSS verification.
-Concretely, the transaction is reverted unless $V(\tau, (c, \mathcal{R}, x, y, \textsf{Cassiopeia}.pks), \pi) = 1$.
+Then, the contract verifies that the proof $\pi$ is valid, as well the PVSS distribution as outlined above.
+Concretely, the proof must be valid according to $V(\tau, (c, \mathcal{R}, x, y, \textsf{Cassiopeia}.pks), \pi) = 1$.
 The Cassiopeia smart contract is written in pseudocode below.
 
 \begin{algorithm}[H]
@@ -86,29 +87,30 @@ The Cassiopeia smart contract is written in pseudocode below.
         \Contract{Cassiopeia}
             \Let{n, t}{\bot}
             \Let{pks}{\emptyset}
-            \Let{C, X, R, S, D, P}{\emptyset}
+            \Let{C, S, P}{\emptyset}
             
             \Function{\sf constructor}{$\overline{n}, \overline{t}, \overline{pks}$}
                 \Let{(n, t, pks)}{(\overline{n}, \overline{t}, \overline{pks})}
             \EndFunction
             
             \Function{\sf encrypt}{$c, \mathcal{R}, x, y, \pi$}
-                \State $i \gets H(c, \mathcal{R}, x)$
                 \State $(\hat{s}, \pi_D) \gets c$
                 \State require($V(\tau, (c, \mathcal{R}, x, y, pks), \pi) = 1 \land \textsf{PVSS.verifyDist}(\hat{s}, \pi_D, pks)$)
-                \State $(C_i, R_i, X_i) \gets (c, \mathcal{R}, x)$
+                \State $i \gets H(c, \mathcal{R}, x)$
+                \State $C_i \gets (c, \mathcal{R}, x)$
                 \State \Return $i$
             \EndFunction
             
             \Function{\sf claim}{$i, w$}
-                \State require($(X_i, w) \in  R_i$)
+                \State $\{\mathcal{R}, x, \dots\} \gets C_i$
+                \State require($(x, w) \in \mathcal{R}$)
                 \State $P_i \gets \textsc{claimed}$
             \EndFunction
             
-            \Function{\sf submitShare}{$\overline{s}_j, \pi_j, i, j$}
+            \Function{\sf submitShare}{$s_j', \pi_j, i, j$}
                 \State require($P_i = \textsc{claimed}$)
-                \State $(\hat{s}, \bot) \gets C_i$
-                \State $\textsf{PVSS.verifyShare}(j, \hat{s}_j, \overline{s}_j, \pi_j)$
+                \State $(\hat{s}, \bot) \gets C_i.c$
+                \State $\textsf{PVSS.verifyShare}(j, \hat{s}_j, s_j', \pi_j)$
                 \State $S_{i,j} \gets s$
             \EndFunction
         \EndContract

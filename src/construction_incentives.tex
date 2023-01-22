@@ -1,4 +1,5 @@
 \section{Incentives}
+% Construction overview
 Here, we augment the scheme in \ref{cassiopeia_no_incentives} to incentivize committee members to act honestly.
 We will create incentives for the committee to reveal on time so that the secret is recoverable.
 This will be done by paying out a reward to the committee members who reveal at the right time, while slashing committee members who do not.
@@ -15,45 +16,81 @@ This collateral will be slashed in case of misbehavior.
 In case a majority of committee members are dishonest, and the secret is irrecoverable, the slashing amounts are sufficient to add up to the reparation price which is used to appease the dealer in the case of failure.
 % The collaterals requested by the contract are also a function of the reparation price, and are calculated as follows:
 
+% Happy path
 Consider the happy path, where the dealer and all committee members are honest.
 Let $f$ be the holding fee of the secret.
-When the dealer calls \textsf{encrypt}, he transfers $f$ to the contract.
+When the dealer makes an encryption request, he transfers $f$ to the contract.
 After a call to \textsf{claim} with a valid witness, committee members submit their shares.
 As soon as a committee member submits a valid share, they receive their reward.
 Each committee member's reward is covered by the holding fee which is split equally amongst all committee members.
 Therefore, each committee member's reward is $\frac{f}{n}$.
 
+% Semi-happy path
 Now consider the scenario where the committee has at least $t$ honest members, but not all of them are honest.
 Dishonest committee members may choose to not submit their shares.
 If any committee member does not submit their share, they do not receive their reward of $\frac{f}{n}$ and it is instead transferred back to the dealer.
 
+% Sad path, define amount to slash
 Now consider the case where the secret is irrecoverable.
 In particular, there are less than $t$ committee members who submit their shares, so there are less than $t$ honest committee members.
 Every dishonest committee member has their collateral slashed equally, on top of already not receiving their reward.
 Concretely, suppose only $t'$ committee members reveal valid shares.
 Let $a$ be the reparation price of the secret and $b$ be the amount of collateral slashed per committee member.
-The sum of every dishonest committee member's slashed collateral and forfeited reward must add up to $a$, i.e. $a = t'(b + \frac{f}{n})$.
+The sum of every dishonest committee member's slashed collateral and forfeited reward must add up to $a$, i.e. $a = (n - t')(b + \frac{f}{n})$.
 Therefore, each dishonest committee member is slashed exactly
-\begin{equation}
-    b = \frac{a}{t'} - \frac{f}{n}
+\begin{equation}\label{eq:slash_amount}
+    b = \frac{a}{n - t'} - \frac{f}{n}
 \end{equation}
+The contract keeps track of an escrow balance $cl_j$ for each committee member $j$ that is used as collateral.
+Whenever the committee member is slashed, $cl_j$ is deducted.
+Whenever the committee member earns rewards (i.e. committee member $j$ submits a valid share), $cl_j$ is added to.
+We introduce a function \textsf{slash} that slashes committee members and transfers the reparation price to the dealer as outlined above.
 
+\begin{algorithm}[H]
+\caption{Cassiopeia \textsf{slash} function}
+    \begin{algorithmic}[1]
+            \Function{\sf slash}{$i$}
+                \State require($P_i = \textsc{claimed} \land \textsf{block.number} \geq D_i$)
+                \State $\{\textsf{dealer}, a, f, \dots\} \gets C_i$
+                \State $t' \gets |S_i|$
+                \State $G \gets 0$
+                \State $b \gets \frac{a}{n - t'} + \frac{f}{n}$ \Comment{Equation~\ref{eq:slash_amount}}
+                \State $\hat{b} \gets \frac{a}{n - t + 1} + \frac{f}{n}$ \Comment{Equation~\ref{eq:collateral_requirement}}
+                \For{$j \in [n]$}
+                    \If{$S_{i,j} = \bot$}
+                        \If{$t' < t$}
+                            \State $cl_j \gets cl_j - b$
+                            \State $G \gets G + b$
+                        \EndIf
+                        \State $G \gets G + \frac{f}{n}$
+                    \EndIf
+                \EndFor
+                \State $\textsf{dealer.send}(G)$
+                \State $l \gets l - \hat{b}$ 
+                \State $P_i \gets \textsc{slashed}$
+            \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+% Amount of collateral needed to lock
 To ensure the contract can use a committee member's collateral to pay the reparation price, the committee member must have deposited at least $b$ inside the contract before \textsf{encrypt} can be called.
-However, the number of honest committee members who will valid shares $t'$ is unknown at the time of an \textsf{encrypt} request.
+However, the number of honest committee members who will submit valid shares $t'$ is unknown at the time of an \textsf{encrypt} request.
 Therefore, the contract must ensure that each committee member has deposited at least the maximum slashable amount given the reparation price.
 Let $\hat{b}$ be the amount of funds a committee member is required to deposit.
 \begin{equation}\label{eq:collateral_requirement}
-    \hat{b} = \argmax_{n - t + 1 \leq t' \leq n} b = \frac{a}{n - t + 1} - \frac{f}{n}
+    \hat{b} = \argmax_{0 \leq t' \leq t - 1} b = \frac{a}{n - t + 1} - \frac{f}{n}
 \end{equation}
 
+% Opp cost
 Notice that each committee member's collateral is locked inside the contract for the lifetime of the secret.
 However, the locked funds do not earn interest, which introduces an opportunity cost for committee members.
 To incentivize committee members to participate in the protocol honestly, the reward must be higher than the opportunity cost.
-Concretely, let $d$ be the lifespan of the secret in blocks, and $\beta$ be the target net return for honest committee members.
+Concretely, let $d$ be the \emph{maximum lifespan} of the secret in blocks, and $\beta$ be the target net return for honest committee members.
 The opportunity cost for locking $|hat{b}$ as collateral inside the contract for $d$ blocks is
 \begin{equation}\label{eq:opp_cost}
     o = \hat{b}((1 + r)^d - 1)
 \end{equation}
+where $r$ is the risk-free rate agreed upon by all committee members.
 Using $\frac{f}{n} - o = \beta o$, Equation~\ref{eq:collateral_requirement} and Equation~\ref{eq:opp_cost}, we can derive the collateral requirement $\hat{b}$ as follows:
 \begin{gather}\label{eq:collateral_from_holding_fee}
     % \frac{f}{n} = (1 + \beta)\hat{b}((1 + r)^d - 1) \\
@@ -63,126 +100,75 @@ Using $\frac{f}{n} - o = \beta o$, Equation~\ref{eq:collateral_requirement} and 
     % \frac{f}{n}(1 + \frac{1}{(1 + \beta)((1 + r)^d - 1)}) = \frac{a}{n - t + 1} \\
     a = \frac{f(n - t + 1)}{n}\biggl(1 + \frac{1}{(1 + \beta)((1 + r)^d - 1)}\biggr)
 \end{gather}
+Therefore, the contract can compute the reparation price $a$ directly during an encryption request using the holding fee $f$ given by the dealer.
 
-% Deadline
-    % Claim function
-% Multiple secrets
-    % Collateral balance
-    % Settle function
-    % Tracking liabilities
-    % Encrypt function 
+% Timelock
+For the reparation price to be known at the time of encryption, the maximum lifespan of the secret must be known.
+However, for an arbitrary relation $\mathcal{R}$ the witness may take an arbitrary amount of time to be found.
+Therefore, we require the dealer to also provide a \emph{maximum duration} $T$ that the secret will be kept for.
+After $T$ blocks, a grace period of $\Delta$ blocks is started, where $\Delta$ is a public parameter.
+Honest committee members will submit their shares within $\Delta$ blocks.
+Therefore, the secret's maximum lifespan $d = T + \Delta$.
 
-
-For reasons that will be clear later on, we need to guarantee that secret shares will be held for a finite amount of time.
-To do so, we modify the scheme such that a secret with identifier $i$ can also be decrypted if some number of blocks $k$ have passed since the secret was first encrypted (say, in block $U_i$), as well as if a valid witness $w$ is presented.
-
-When \textsf{claim} is successfully called, a deadline $D_i$ is set such that honest committee members must submit their shares before block $D_i$.
-The deadline is set to the current block number plus a public parameter $\Delta$.
-A secret is \emph{irrecoverable} if less than $t$ committee members submit their shares before $D_i$.
-Such committee members are dishonest as they did not follow the honest protocol.
+% Claim function
 The \textsf{claim} function is modified as follows.
+Let $st$ be the block where the encryption request was first made.
+The contract ensures that the current block number is at least $st + T$ or a valid witness $w$ is found.
+The grace period is started, and the share submission deadline $D_i$ is set for $\Delta$ blocks into the future.
 
 \begin{algorithm}[H]
 \caption{Modified Cassiopeia \textsf{claim} function}
     \begin{algorithmic}[1]
             \Function{\sf claim}{$i, w$}
                 \State require($P_i = \bot$)
-                \State require($\textsf{block.number} \geq st_i + T_i \lor (X_i, w) \in \mathcal{R}$)
+                \State $\{st, x, T\} \gets C_i$
+                \State require($\textsf{block.number} \geq st + T \lor (x, w) \in \mathcal{R}$)
                 \State $D_i \gets \textsf{block.number} + \Delta$
                 \State $P_i \gets \textsc{claimed}$
             \EndFunction
     \end{algorithmic}
 \end{algorithm}
 
-Each secret has an associated fee $v_i$ and insurance $a_i$.
-The fee $v_i$ is split equally among all committee members, paid by the dealer to compensate them for maintaining the secret.
-More concretely, $\frac{v_i}{n}$ is reserved for each committee member as their share of the fee.
-Honest committee members receive this when they submit a valid share.
-However, dishonest committee members who do not submit valid shares before $D_i$ forfeit their share of the fee.
+% Many secrets liabilities
+We call a secret \emph{active} if \textsf{slash} has not been called for the secret.
+Because there may be many active secrets at any point in time, the contract must ensure that there are sufficient funds locked in escrow to cover all reparation price liabilities.
+To do so, the contract keeps track of $l$, which is equal to the sum of $\hat{b}$ for all secrets.
+During an encryption request, the contract ensures that for each committee member $j$, the remaining unused collateral $cl_j - l$ is sufficient to cover $\hat{b}$ for the new secret (see Line 9 of Algorithm~\ref{alg:encrypt_incentives}).
 
-The insurance $a_i$ is taken from dishonest committee members and paid to a designed beneficiary $B_i$ (which can be the dealer) if the secret is irrecoverable.
-To do so, we require committee members to deposit and maintain collateral $cl_j$ in the smart contract, so they can be slashed.
-The smart contract will also use $cl_j$ to credit fees to honest committee members.
-
-If the secret is irrecoverable, dishonest committee members each have their collateral deducted by $\frac{a_i}{n - |S_i|} - \frac{v_i}{n}$ to cover the insurance payout.
-Note that we subtract $\frac{v_i}{n}$ because the forfeited fee becomes part of the dishonest committee member's share of the insurance payout.
-The insurance payout occurs in a smart contract function \textsf{settle}, which can only be called once per secret after the deadline $D_i$ has passed.
-The concrete implementation is shown below.
-
-\begin{algorithm}[H]
-\caption{Cassiopeia \textsf{settle} function}
-    \begin{algorithmic}[1]
-            \Function{\sf settle}{$i$}
-                \State require($P_i = \textsc{claimed} \land \textsf{block.number} \geq D_i$)
-                \If{$|S_i| < t$}
-                    \State $cl_j \gets cl_j - \frac{a_i}{n - |S_i|} + \frac{v_i}{n}, \forall j : S_{i,j} = \bot$
-                    \State $B_i.\textsf{send}(a_i)$
-                \EndIf
-                \State $l \gets l - \frac{a_i}{n-t+1} + \frac{v_i}{n}$
-                \State $P_i \gets \textsc{settled}$
-            \EndFunction
-    \end{algorithmic}
-\end{algorithm}
-
-For insurance payouts to succeed, committee members must have sufficient collateral.
-The smart contract ensures this in the \textsf{encrypt} function.
-Concretely, it checks that every committee member's collateral $cl_j$ is sufficient to cover the worst-case insurance payout for all active secrets, along with the secret in the current encryption request.
-Let $m_i$ be the worse-case per-committee member insurance payout for secret $i$ and let $l$ be the sum of $m_{i'}$ whre $i'$ are the indices of currently active secrets (those for which \textsf{settle} has not been called).
-Because $|S_i| < t$ when secret $i$ is irrecoverable,
-\begin{equation}\label{worst-case-payout}
-    m_i = \frac{a_{i}}{n-t+1} - \frac{v_i}{n} 
-\end{equation}
-In \textsf{encrypt}, the smart contract checks that for every committee member $j$, their collateral $cl_j \geq l + m_i$, otherwise the transaction is reverted.
-For efficiency, the smart contract keeps track of $l$.
-Upon successful calls to \textsf{encrypt} and \textsf{settle}, $l$ is increased and decreased by $m_i$ respectively.
-
-The smart contract must also ensure that committee members are sufficiently incentivized to hold their secret shares.
-Assume there exists a fixed per-block risk-free rate $r$ agreed upon by committee members.
-Concretely, committtee members incur an opportunity cost of $m_i((1 + r)^{k + \Delta} - 1)$ to lock up $m_i$ in collateral for $k + \Delta$ blocks, since they could deposit the money somewhere else to earn interest.
-If the opportunity cost of locking the insurance as collateral is too large relative to the fee, then committee members are disincentivized to participate in the protocol entirely.
-Therefore, given some fee $v_i$ that the dealer is willing to pay, the smart contract can derive the maximum insurance payout $a_i$ the beneficiary can receive.
-In fact, the beneficiary will receive exactly this maximum amount if the secret is irrecoverable.
-More concretely, we require
-\begin{equation}\label{fee_collateral_ineq}
-    \frac{v_i}{n} \geq m_i((1 + r)^{k + \Delta} - 1) = (\frac{a_i}{n - t + 1} - \frac{v_i}{n})((1+r)^{k + \Delta} - 1)
-\end{equation}
-In the function \textsf{encrypt}, the smart contract therefore computes $a_i$ as
-\begin{equation}\label{fee_collateral_eq}
-    a_i = (1+r)^{k + \Delta}(\frac{n - t + 1}{n})v_i
-\end{equation}
-
-Note that the zkSNARK circuit from \ref{alg:snark_circuit} must be augmented to accept $k$ as a public input.
-$k$ will appear alongside $\mathcal{R}$ and $x$ in proving and verification of the zkSNARK.
-The augmented functionality of \textsf{encrypt} is described in pseudocode below.
-
+The fully modified \textsf{encrypt} function is shown below.
 \begin{algorithm}[H]
 \caption{Modified Cassiopeia \textsf{encrypt} function}
+\label{alg:encrypt_incentives}
     \begin{algorithmic}[1]
-            \Function{\sf encrypt}{$c, \mathcal{R}, x, k, y, \pi, b$} \textbf{payable}
-                \State $i \gets H(c, \mathcal{R}, x, k)$
-
+            \Function{\sf encrypt}{$c, \mathcal{R}, x, T, y, \pi$} \textbf{payable}
                 \CommentLine{Incentives}
-                \State $v_i \gets \textsf{msg.value}$
-                \State $a_i \gets (1+r)^{k + \Delta}(\frac{n - t + 1}{n})v_i$
-                \State $m_i \gets \frac{a_i}{n - t + 1} - \frac{v_i}{n}$
-                \State require($cl_j \geq l + m_i$), $\forall j < n$
-                \State $l \gets l + m_i$
-                \State $(U_i, B_i) \gets (\textsf{block.number}, b)$
+                \State $d \gets T + \Delta$
+                \State $f \gets \textsf{msg.value}$
+                \State $a \gets \frac{f(n - t + 1)}{n}\biggl(1 + \frac{1}{(1 + \beta)((1 + r)^d - 1)}\biggr)$ \Comment{Equation~\ref{eq:collateral_from_holding_fee}}
+                \State $\hat{b} \gets \frac{a}{n - t + 1} - \frac{f}{n}$ \Comment{Equation~\ref{eq:collateral_requirement}}
+                \For{$j \in [n]$}
+                    \State require($cl_j \geq l + \hat{b}$)
+                \EndFor
+                \State $l \gets l + \hat{b}$
+                \State $st \gets \textsf{block.number}$
 
                 \CommentLine{Verify PVSS and zkSNARK}
                 \State $(\hat{s}, \pi_D) \gets c$
-                \State require($V(\tau, (c, \mathcal{R}, x, k, y, pks), \pi) = 1 \land \textsf{PVSS.verifyDist}(\hat{s}, \pi_D, pks)$)
-                \State $(C_i, R_i, X_i, K_i) = (c, \mathcal{R}, x, k)$
+                \State require($V(\tau, (c, \mathcal{R}, x, T, y, pks), \pi) = 1 \land \textsf{PVSS.verifyDist}(\hat{s}, \pi_D, pks)$)
+
+                \State $i \gets H(c, \mathcal{R}, x, T)$
+                \State $C_i \gets \{c, \mathcal{R}, x, T, \hat{s}, f, a, st\}$
 
                 \State \Return $i$
             \EndFunction
     \end{algorithmic}
 \end{algorithm}
 
-A committee member can collect their fees or stop participating by calling a smart contract function to withdraw some amount $\delta_{cl}$ their collateral.
-However, there may be active secrets, for which some collateral must be reserved.
-Concretely, a committee member can withdraw $\delta_{cl}$ only if $cl_j - \delta_{cl} \geq l$.
-The smart contract also keeps track of the address of each committee member $addr_j$ to ensure only committee member $j$ is entitled to their collateral.
+Lastly, we must allow committee members to withdraw their collateral to collect their fees or stop participating in the protocol.
+The only requirement is that the remaining collateral is sufficient to cover the worst case reparation price for all active secrets.
+Suppose committee member $j$ wants to withdraw $\delta_{cl}$.
+They can do so only if $cl_j - \delta_{cl} \geq l$.
+Note that the contract also keeps track of the address of each committee member $addr_j$ to ensure only committee member $j$ is entitled to their collateral.
 The pseudocode for depositing and withdrawing collateral is shown below.
 
 \begin{algorithm}[H]
@@ -200,6 +186,113 @@ The pseudocode for depositing and withdrawing collateral is shown below.
         \EndFunction
     \end{algorithmic}
 \end{algorithm}
+
+% Each secret has an associated fee $v_i$ and insurance $a_i$.
+% The fee $v_i$ is split equally among all committee members, paid by the dealer to compensate them for maintaining the secret.
+% More concretely, $\frac{v_i}{n}$ is reserved for each committee member as their share of the fee.
+% Honest committee members receive this when they submit a valid share.
+% However, dishonest committee members who do not submit valid shares before $D_i$ forfeit their share of the fee.
+
+% The insurance $a_i$ is taken from dishonest committee members and paid to a designed beneficiary $B_i$ (which can be the dealer) if the secret is irrecoverable.
+% To do so, we require committee members to deposit and maintain collateral $cl_j$ in the smart contract, so they can be slashed.
+% The smart contract will also use $cl_j$ to credit fees to honest committee members.
+
+% If the secret is irrecoverable, dishonest committee members each have their collateral deducted by $\frac{a_i}{n - |S_i|} - \frac{v_i}{n}$ to cover the insurance payout.
+% Note that we subtract $\frac{v_i}{n}$ because the forfeited fee becomes part of the dishonest committee member's share of the insurance payout.
+% The insurance payout occurs in a smart contract function \textsf{settle}, which can only be called once per secret after the deadline $D_i$ has passed.
+% The concrete implementation is shown below.
+
+% \begin{algorithm}[H]
+% \caption{Cassiopeia \textsf{settle} function}
+%     \begin{algorithmic}[1]
+%             \Function{\sf settle}{$i$}
+%                 \State require($P_i = \textsc{claimed} \land \textsf{block.number} \geq D_i$)
+%                 \If{$|S_i| < t$}
+%                     \State $cl_j \gets cl_j - \frac{a_i}{n - |S_i|} + \frac{v_i}{n}, \forall j : S_{i,j} = \bot$
+%                     \State $B_i.\textsf{send}(a_i)$
+%                 \EndIf
+%                 \State $l \gets l - \frac{a_i}{n-t+1} + \frac{v_i}{n}$
+%                 \State $P_i \gets \textsc{settled}$
+%             \EndFunction
+%     \end{algorithmic}
+% \end{algorithm}
+
+% For insurance payouts to succeed, committee members must have sufficient collateral.
+% The smart contract ensures this in the \textsf{encrypt} function.
+% Concretely, it checks that every committee member's collateral $cl_j$ is sufficient to cover the worst-case insurance payout for all active secrets, along with the secret in the current encryption request.
+% Let $m_i$ be the worse-case per-committee member insurance payout for secret $i$ and let $l$ be the sum of $m_{i'}$ whre $i'$ are the indices of currently active secrets (those for which \textsf{settle} has not been called).
+% Because $|S_i| < t$ when secret $i$ is irrecoverable,
+% \begin{equation}\label{worst-case-payout}
+%     m_i = \frac{a_{i}}{n-t+1} - \frac{v_i}{n} 
+% \end{equation}
+% In \textsf{encrypt}, the smart contract checks that for every committee member $j$, their collateral $cl_j \geq l + m_i$, otherwise the transaction is reverted.
+% For efficiency, the smart contract keeps track of $l$.
+% Upon successful calls to \textsf{encrypt} and \textsf{settle}, $l$ is increased and decreased by $m_i$ respectively.
+
+% The smart contract must also ensure that committee members are sufficiently incentivized to hold their secret shares.
+% Assume there exists a fixed per-block risk-free rate $r$ agreed upon by committee members.
+% Concretely, committtee members incur an opportunity cost of $m_i((1 + r)^{k + \Delta} - 1)$ to lock up $m_i$ in collateral for $k + \Delta$ blocks, since they could deposit the money somewhere else to earn interest.
+% If the opportunity cost of locking the insurance as collateral is too large relative to the fee, then committee members are disincentivized to participate in the protocol entirely.
+% Therefore, given some fee $v_i$ that the dealer is willing to pay, the smart contract can derive the maximum insurance payout $a_i$ the beneficiary can receive.
+% In fact, the beneficiary will receive exactly this maximum amount if the secret is irrecoverable.
+% More concretely, we require
+% \begin{equation}\label{fee_collateral_ineq}
+%     \frac{v_i}{n} \geq m_i((1 + r)^{k + \Delta} - 1) = (\frac{a_i}{n - t + 1} - \frac{v_i}{n})((1+r)^{k + \Delta} - 1)
+% \end{equation}
+% In the function \textsf{encrypt}, the smart contract therefore computes $a_i$ as
+% \begin{equation}\label{fee_collateral_eq}
+%     a_i = (1+r)^{k + \Delta}(\frac{n - t + 1}{n})v_i
+% \end{equation}
+
+% Note that the zkSNARK circuit from \ref{alg:snark_circuit} must be augmented to accept $k$ as a public input.
+% $k$ will appear alongside $\mathcal{R}$ and $x$ in proving and verification of the zkSNARK.
+% The augmented functionality of \textsf{encrypt} is described in pseudocode below.
+
+% \begin{algorithm}[H]
+% \caption{Modified Cassiopeia \textsf{encrypt} function}
+%     \begin{algorithmic}[1]
+%             \Function{\sf encrypt}{$c, \mathcal{R}, x, k, y, \pi, b$} \textbf{payable}
+%                 \State $i \gets H(c, \mathcal{R}, x, k)$
+
+%                 \CommentLine{Incentives}
+%                 \State $v_i \gets \textsf{msg.value}$
+%                 \State $a_i \gets (1+r)^{k + \Delta}(\frac{n - t + 1}{n})v_i$
+%                 \State $m_i \gets \frac{a_i}{n - t + 1} - \frac{v_i}{n}$
+%                 \State require($cl_j \geq l + m_i$), $\forall j < n$
+%                 \State $l \gets l + m_i$
+%                 \State $(U_i, B_i) \gets (\textsf{block.number}, b)$
+
+%                 \CommentLine{Verify PVSS and zkSNARK}
+%                 \State $(\hat{s}, \pi_D) \gets c$
+%                 \State require($V(\tau, (c, \mathcal{R}, x, k, y, pks), \pi) = 1 \land \textsf{PVSS.verifyDist}(\hat{s}, \pi_D, pks)$)
+%                 \State $(C_i, R_i, X_i, K_i) = (c, \mathcal{R}, x, k)$
+
+%                 \State \Return $i$
+%             \EndFunction
+%     \end{algorithmic}
+% \end{algorithm}
+
+% A committee member can collect their fees or stop participating by calling a smart contract function to withdraw some amount $\delta_{cl}$ their collateral.
+% However, there may be active secrets, for which some collateral must be reserved.
+% Concretely, a committee member can withdraw $\delta_{cl}$ only if $cl_j - \delta_{cl} \geq l$.
+% The smart contract also keeps track of the address of each committee member $addr_j$ to ensure only committee member $j$ is entitled to their collateral.
+% The pseudocode for depositing and withdrawing collateral is shown below.
+
+% \begin{algorithm}[H]
+% \caption{Depositing and withdrawing collateral from Cassiopeia}
+%     \begin{algorithmic}[1]
+%         \Function{\sf depositCollateral}{$j$} \textbf{payable}
+%             \State $cl_j \gets cl_j + \textsf{msg.value}$
+%         \EndFunction
+
+%         \Function{\sf withdrawCollateral}{$j, \delta_{cl}$}
+%             \State require($\textsf{msg.sender} = addr_j$)
+%             \State require($cl_j - \delta_{cl} \geq l$)
+%             \State $cl_j \gets cl_j - \delta_{cl}$
+%             \State $\textsf{msg.sender.send}(\delta_{cl})$
+%         \EndFunction
+%     \end{algorithmic}
+% \end{algorithm}
 
 % TODO: do we even need L?
 % Concretely, the \textsf{encrypt} function is modified as follows.
