@@ -1,5 +1,78 @@
 \section{Incentives}
 Here, we augment the scheme in \ref{cassiopeia_no_incentives} to incentivize committee members to act honestly.
+We will create incentives for the committee to reveal on time so that the secret is recoverable.
+This will be done by paying out a reward to the committee members who reveal at the right time, while slashing committee members who do not.
+If every committee member is honest, everyone will be rewarded.
+This way, we will ensure correctness.
+Unfortunately, we cannot use slashing to ensure security, as malicious committee members can always reveal confidential information off-chain and the smart contract has no way of knowing this, so our goal will only be correctness.
+
+Initially, the dealer names a \emph{reparation price} of their choice, which they are guaranteed to be paid in case the secret is irrecoverable.
+The contract requests from the dealer to pay a certain \emph{holding fee}.
+The larger the reparation price, the larger the holding fee. 
+The holding fee is the reward that honest committee members will share amongst themselves upon the completion of the protocol and the correct retrieval of the secret.
+At the same time, each committee member puts in a certain \emph{collateral}, which is held by the contract in escrow until the completion of protocol, in case the committee member misbehaves.
+This collateral will be slashed in case of misbehavior.
+In case a majority of committee members are dishonest, and the secret is irrecoverable, the slashing amounts are sufficient to add up to the reparation price which is used to appease the dealer in the case of failure.
+% The collaterals requested by the contract are also a function of the reparation price, and are calculated as follows:
+
+Consider the happy path, where the dealer and all committee members are honest.
+Let $f$ be the holding fee of the secret.
+When the dealer calls \textsf{encrypt}, he transfers $f$ to the contract.
+After a call to \textsf{claim} with a valid witness, committee members submit their shares.
+As soon as a committee member submits a valid share, they receive their reward.
+Each committee member's reward is covered by the holding fee which is split equally amongst all committee members.
+Therefore, each committee member's reward is $\frac{f}{n}$.
+
+Now consider the scenario where the committee has at least $t$ honest members, but not all of them are honest.
+Dishonest committee members may choose to not submit their shares.
+If any committee member does not submit their share, they do not receive their reward of $\frac{f}{n}$ and it is instead transferred back to the dealer.
+
+Now consider the case where the secret is irrecoverable.
+In particular, there are less than $t$ committee members who submit their shares, so there are less than $t$ honest committee members.
+Every dishonest committee member has their collateral slashed equally, on top of already not receiving their reward.
+Concretely, suppose only $t'$ committee members reveal valid shares.
+Let $a$ be the reparation price of the secret and $b$ be the amount of collateral slashed per committee member.
+The sum of every dishonest committee member's slashed collateral and forfeited reward must add up to $a$, i.e. $a = t'(b + \frac{f}{n})$.
+Therefore, each dishonest committee member is slashed exactly
+\begin{equation}
+    b = \frac{a}{t'} - \frac{f}{n}
+\end{equation}
+
+To ensure the contract can use a committee member's collateral to pay the reparation price, the committee member must have deposited at least $b$ inside the contract before \textsf{encrypt} can be called.
+However, the number of honest committee members who will valid shares $t'$ is unknown at the time of an \textsf{encrypt} request.
+Therefore, the contract must ensure that each committee member has deposited at least the maximum slashable amount given the reparation price.
+Let $\hat{b}$ be the amount of funds a committee member is required to deposit.
+\begin{equation}\label{eq:collateral_requirement}
+    \hat{b} = \argmax_{n - t + 1 \leq t' \leq n} b = \frac{a}{n - t + 1} - \frac{f}{n}
+\end{equation}
+
+Notice that each committee member's collateral is locked inside the contract for the lifetime of the secret.
+However, the locked funds do not earn interest, which introduces an opportunity cost for committee members.
+To incentivize committee members to participate in the protocol honestly, the reward must be higher than the opportunity cost.
+Concretely, let $d$ be the lifespan of the secret in blocks, and $\beta$ be the target net return for honest committee members.
+The opportunity cost for locking $|hat{b}$ as collateral inside the contract for $d$ blocks is
+\begin{equation}\label{eq:opp_cost}
+    o = \hat{b}((1 + r)^d - 1)
+\end{equation}
+Using $\frac{f}{n} - o = \beta o$, Equation~\ref{eq:collateral_requirement} and Equation~\ref{eq:opp_cost}, we can derive the collateral requirement $\hat{b}$ as follows:
+\begin{gather}\label{eq:collateral_from_holding_fee}
+    % \frac{f}{n} = (1 + \beta)\hat{b}((1 + r)^d - 1) \\
+    % \frac{f}{n} = (1 + \beta)(\frac{a}{n - t + 1} - \frac{f}{n})((1 + r)^d - 1) \\ 
+    % \frac{f}{n(1 + \beta)} = (\frac{a}{n - t + 1} - \frac{f}{n})((1 + r)^d - 1) \\
+    % \frac{f}{n(1 + \beta)((1 + r)^d - 1)} = \frac{a}{n - t + 1} - \frac{f}{n} \\
+    % \frac{f}{n}(1 + \frac{1}{(1 + \beta)((1 + r)^d - 1)}) = \frac{a}{n - t + 1} \\
+    a = \frac{f(n - t + 1)}{n}\biggl(1 + \frac{1}{(1 + \beta)((1 + r)^d - 1)}\biggr)
+\end{gather}
+
+% Deadline
+    % Claim function
+% Multiple secrets
+    % Collateral balance
+    % Settle function
+    % Tracking liabilities
+    % Encrypt function 
+
+
 For reasons that will be clear later on, we need to guarantee that secret shares will be held for a finite amount of time.
 To do so, we modify the scheme such that a secret with identifier $i$ can also be decrypted if some number of blocks $k$ have passed since the secret was first encrypted (say, in block $U_i$), as well as if a valid witness $w$ is presented.
 
