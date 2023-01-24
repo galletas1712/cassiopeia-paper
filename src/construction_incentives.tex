@@ -41,25 +41,25 @@ Therefore, each dishonest committee member is slashed exactly
 \begin{equation}\label{eq:slash_amount}
     b = \frac{a}{n - t'} - \frac{f}{n}
 \end{equation}
-The contract keeps track of an escrow balance $cl_j$ for each committee member $j$ that is used as collateral.
-Whenever the committee member is slashed, $cl_j$ is deducted.
-Whenever the committee member earns rewards (i.e. committee member $j$ submits a valid share), $cl_j$ is added to.
+The contract keeps track of an escrow balance $cl_i$ for each committee member $i$ that is used as collateral.
+Whenever the committee member is slashed, $cl_i$ is deducted.
+Whenever the committee member earns rewards (i.e. committee member $i$ submits a valid share), $cl_i$ is added to.
 We introduce a function \textsf{slash} that slashes committee members and transfers the reparation price to the dealer as outlined above.
 
 \begin{algorithm}[H]
 \caption{Cassiopeia \textsf{slash} function}
     \begin{algorithmic}[1]
             \Function{\sf slash}{$i$}
-                \State require($P_i = \textsc{claimed} \land \textsf{block.number} \geq D_i$)
-                \State $\{\textsf{dealer}, a, f, \dots\} \gets C_i$
-                \State $t' \gets |S_i|$
+                \State require($M_{id} = \textsc{claimed} \land \textsf{block.number} \geq D_{id}$)
+                \State $\{\textsf{dealer}, a, f, \dots\} \gets C_{id}$
+                \State $t' \gets |S_{id}|$
                 \State $G \gets 0$
                 \State $b \gets \frac{a}{n - t'} + \frac{f}{n}$ \Comment{Equation~\ref{eq:slash_amount}}
                 \State $\hat{b} \gets \frac{a}{n - t + 1} + \frac{f}{n}$ \Comment{Equation~\ref{eq:collateral_requirement}}
-                \For{$j \in [n]$}
-                    \If{$S_{i,j} = \bot$}
+                \For{$i \in [n]$}
+                    \If{$S_{id,i} = \bot$}
                         \If{$t' < t$}
-                            \State $cl_j \gets cl_j - b$
+                            \State $cl_i \gets cl_i - b$
                             \State $G \gets G + b$
                         \EndIf
                         \State $G \gets G + \frac{f}{n}$
@@ -67,7 +67,7 @@ We introduce a function \textsf{slash} that slashes committee members and transf
                 \EndFor
                 \State $\textsf{dealer.send}(G)$
                 \State $l \gets l - \hat{b}$ 
-                \State $P_i \gets \textsc{slashed}$
+                \State $M_{id} \gets \textsc{slashed}$
             \EndFunction
     \end{algorithmic}
 \end{algorithm}
@@ -119,12 +119,12 @@ The grace period is started, and the share submission deadline $D_i$ is set for 
 \begin{algorithm}[H]
 \caption{Modified Cassiopeia \textsf{claim} function}
     \begin{algorithmic}[1]
-            \Function{\sf claim}{$i, w$}
-                \State require($P_i = \bot$)
+            \Function{\sf claim}{$id, w$}
+                \State require($M_{id} = \bot$)
                 \State $\{st, x, T\} \gets C_i$
                 \State require($\textsf{block.number} \geq st + T \lor (x, w) \in \mathcal{R}$)
-                \State $D_i \gets \textsf{block.number} + \Delta$
-                \State $P_i \gets \textsc{claimed}$
+                \State $D_{id} \gets \textsf{block.number} + \Delta$
+                \State $M_{id} \gets \textsc{claimed}$
             \EndFunction
     \end{algorithmic}
 \end{algorithm}
@@ -133,7 +133,7 @@ The grace period is started, and the share submission deadline $D_i$ is set for 
 We call a secret \emph{active} if \textsf{slash} has not been called for the secret.
 Because there may be many active secrets at any point in time, the contract must ensure that there are sufficient funds locked in escrow to cover all reparation price liabilities.
 To do so, the contract keeps track of $l$, which is equal to the sum of $\hat{b}$ for all secrets.
-During an encryption request, the contract ensures that for each committee member $j$, the remaining unused collateral $cl_j - l$ is sufficient to cover $\hat{b}$ for the new secret (see Line 9 of Algorithm~\ref{alg:encrypt_incentives}).
+During an encryption request, the contract ensures that for each committee member $i$, the remaining unused collateral $cl_i - l$ is sufficient to cover $\hat{b}$ for the new secret (see Line 9 of Algorithm~\ref{alg:encrypt_incentives}).
 
 The fully modified \textsf{encrypt} function is shown below.
 \begin{algorithm}[H]
@@ -146,8 +146,8 @@ The fully modified \textsf{encrypt} function is shown below.
                 \State $f \gets \textsf{msg.value}$
                 \State $a \gets \frac{f(n - t + 1)}{n}\biggl(1 + \frac{1}{(1 + \beta)((1 + r)^d - 1)}\biggr)$ \Comment{Equation~\ref{eq:collateral_from_holding_fee}}
                 \State $\hat{b} \gets \frac{a}{n - t + 1} - \frac{f}{n}$ \Comment{Equation~\ref{eq:collateral_requirement}}
-                \For{$j \in [n]$}
-                    \State require($cl_j \geq l + \hat{b}$)
+                \For{$i \in [n]$}
+                    \State require($cl_i \geq l + \hat{b}$)
                 \EndFor
                 \State $l \gets l + \hat{b}$
                 \State $st \gets \textsf{block.number}$
@@ -156,32 +156,31 @@ The fully modified \textsf{encrypt} function is shown below.
                 \State $(\hat{s}, \pi_D) \gets c$
                 \State require($V(\tau, (c, \mathcal{R}, x, T, y, pks), \pi) = 1 \land \textsf{PVSS.verifyDist}(\hat{s}, \pi_D, pks)$)
 
-                \State $i \gets H(c, \mathcal{R}, x, T)$
-                \State $C_i \gets \{c, \mathcal{R}, x, T, \hat{s}, f, a, st\}$
+                \State $id \gets H(c, \mathcal{R}, x, T)$
+                \State $C_{id} \gets \{c, \mathcal{R}, x, T, \hat{s}, f, a, st\}$
 
-                \State \Return $i$
+                \State \Return $id$
             \EndFunction
     \end{algorithmic}
 \end{algorithm}
 
 Lastly, we must allow committee members to withdraw their collateral to collect their fees or stop participating in the protocol.
 The only requirement is that the remaining collateral is sufficient to cover the worst case reparation price for all active secrets.
-Suppose committee member $j$ wants to withdraw $\delta_{cl}$.
-They can do so only if $cl_j - \delta_{cl} \geq l$.
-Note that the contract also keeps track of the address of each committee member $addr_j$ to ensure only committee member $j$ is entitled to their collateral.
+Suppose committee member $i$ wants to withdraw $\delta_{cl}$.
+They can do so only if $cl_i - \delta_{cl} \geq l$.
+Note that the contract also keeps track of the address of each committee member $addr_i$ to ensure only committee member $i$ is entitled to their collateral.
 The pseudocode for depositing and withdrawing collateral is shown below.
 
 \begin{algorithm}[H]
 \caption{Depositing and withdrawing collateral from Cassiopeia}
     \begin{algorithmic}[1]
-        \Function{\sf depositCollateral}{$j$} \textbf{payable}
-            \State $cl_j \gets cl_j + \textsf{msg.value}$
+        \Function{\sf depositCollateral}{$i$} \textbf{payable}
+            \State $cl_i \gets cl_i + \textsf{msg.value}$
         \EndFunction
 
-        \Function{\sf withdrawCollateral}{$j, \delta_{cl}$}
-            \State require($\textsf{msg.sender} = addr_j$)
-            \State require($cl_j - \delta_{cl} \geq l$)
-            \State $cl_j \gets cl_j - \delta_{cl}$
+        \Function{\sf withdrawCollateral}{$i, \delta_{cl}$}
+            \State require($\textsf{msg.sender} = addr_i \land cl_i - \delta_{cl} \geq l$)
+            \State $cl_i \gets cl_i - \delta_{cl}$
             \State $\textsf{msg.sender.send}(\delta_{cl})$
         \EndFunction
     \end{algorithmic}
