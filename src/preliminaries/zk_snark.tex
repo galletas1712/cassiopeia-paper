@@ -5,7 +5,7 @@ A zkSNARK consists of a triple of probablistic polynomial time algorithms $(G, P
 \begin{itemize}
     \item $G$ is a generator that, upon receiving a security parameter input $\lambda$, generates a \emph{reference string} $\sigma$ and a \emph{verification state} $\tau$.
     \item A prover $P(\sigma, x_C, w_C)$ that outputs a proof $\pi$ for the instance $x_C$ and the witness $w_C$.
-    \item A verifier $V(\sigma, x_C, \pi)$ that outputs 1 if the proof is valid and 0 otherwise.
+    \item A verifier $V(\tau, x_C, \pi)$ that outputs 1 if the proof is valid and 0 otherwise.
 \end{itemize}
 
 zkSNARKs have the following properties:

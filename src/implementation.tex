@@ -9,7 +9,7 @@ Similar to the scheme presented by Schoenmakers~\cite{pvss_schoenmakers}, SCRAPE
 Therefore, our implmentation of the scheme requires the dealer to encrypt the message with the truncated SHA256 hash of a $h^s$, where $s$ is a randomly generated integer between 0 and the order of BN254.
 
 We also optimize the zkSNARK circuit from Algorithm \ref{alg:snark_circuit} needed to ensure non-malleability.
-SCRAPE's instantiation of \textsf{PVSS.verifyDist} allows us to be convinced that $\textsf{PVSS.genDist}(s, \textsf{Cassiopeia}.pks) = c$ just by checking one group element in $c$.
+SCRAPE's instantiation of \textsf{PVSS.verifyDist} allows us to be convinced that $\textsf{PVSS.genDist}(s, [pk_i]) = c$ just by checking one group element in $c$.
 In particular, SCRAPE's ciphertext includes a commitment $F_0 = g^s$.
 Since \textsf{PVSS.verifyDist} already checks consistency of $F_0$ with the rest of the ciphertext, we only need to check whether $\log F_0 = s$.
 This involves only one BN254 exponentiation inside of Algorithm \ref{alg:snark_circuit} and makes the circuit size constant, allowing proving time to be constant.

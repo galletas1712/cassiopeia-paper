@@ -2,10 +2,10 @@
     In a Witness Encryption scheme, a message is encrypted such that the ciphertext can only be decrypted if a witness is presented as a solution to an NP problem~\cite{witness_encryption}.
     For example, a message can be encrypted such that it can only be decrypted with a solution to an instance of the 3-SAT problem.
     Concretely, let $\mathcal{R}$ be a relation of an NP language $\mathcal{L}$ such that for each $x \in \mathcal{L}$, there exists some $w$ such that $(x, w) \in \mathcal{R}$ and for all $x \notin \mathcal{L}$ such a witness does not exist.
-    A Witness Encryption scheme, parameterized by a security parameter $\lambda$, consists of the encryption and decryption functions $\textsf{WE.Enc}_\mathcal{R}(1^{\lambda}, x, m)$ and $\textsf{WE.Dec}_\mathcal{R}(c, w)$ such that the following properties hold~\cite{timelock_from_crc}:
+    A Witness Encryption scheme, parameterized by a security parameter $\lambda$, consists of the encryption and decryption functions $\textsf{WE.Enc}_\mathcal{R}(1^{\lambda}, x, m)$ and $\textsf{WE.Dec}_\mathcal{R}(c, x, w)$ such that the following properties hold~\cite{timelock_from_crc}:
     \begin{itemize}
-        \item \emph{Correctness}: For any plaintext message $m$, instance $x \in \mathcal{L}$, and witness $w$ such that $(x, w) \in \mathcal{R}$, $\textsf{WE.Dec}_\mathcal{R}(\textsf{WE.Enc}_\mathcal{R}(1^{\lambda}, x, m), w) = m$.
-        \item \emph{Security}: A PPT adversary given $c = \textsf{WE.Enc}_\mathcal{R}(1^{\lambda}, x, m)$ is only able to extract information about $m$ if she can also produce a witness $w$ such that $(x, w) \in \mathcal{R}$, except with negligible probability.
+        \item \emph{Correctness}: For any plaintext message $m$, instance $x \in \mathcal{L}$, and witness $w$ such that $(x, w) \in \mathcal{R}$, $\textsf{WE.Dec}_\mathcal{R}(\textsf{WE.Enc}_\mathcal{R}(1^{\lambda}, x, m), x, w) = m$.
+        \item \emph{Extractable Security}: A PPT adversary given $c = \textsf{WE.Enc}_\mathcal{R}(1^{\lambda}, x, m)$ is only able to extract information about $m$ if she can also produce a witness $w$ such that $(x, w) \in \mathcal{R}$, except with negligible probability.
     \end{itemize}
     The scheme has public witness security if the witness is public during decryption, and the message is revealed publicly.
-    This definition does not yet encompass extractability and the social aspect of our scheme, and is a precursor to the definition of Extractable Social Witness Encryption we introduce later in the paper.
+    % TODO: do we need to mention this isn't the complete definition?
