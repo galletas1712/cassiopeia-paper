@@ -9,12 +9,12 @@ PVSS schemes generally follow the steps below~\cite{pvss_scrape}:
     The dealer calls $\textsf{genDist}(s, [pk_i])$ to generate shares $s_1, \dots, s_n$ and encrypts each share $s_i$ with $pk_i$ to produce $\hat{s}_i$.
     The dealer also generates a proof $\pi_D$ that all $\hat{s}_i$ are valid and consistent with one another.
     \item \textbf{Verification}:
-    Any external verifier $V$ calls $\textsf{verifyDist}([\hat{s}_i], [pk_i], \pi_D)$ non-interactively verifies, using all publicly available information, that the encrypted shares are consistent with one another.
+    Any external verifier $V$ calls $\textsf{verifyDist}([\hat{s}_i], [pk_i], \pi_D)$ to non-interactively verify, using all publicly available information, that the encrypted shares are consistent with one another.
     \item \textbf{Reconstruction}:
         \begin{itemize}
-            \item Each $p_i$ publishes $\hat{s}_i' = \textsf{decrypt}(\hat{s}_i, sk_i)$, along with a proof $\pi_i$ that $\hat{s}_i' = s_i$.
-            \item $V$ calls $\textsf{verifyShare}(i, \hat{s}_i, \hat{s}_i', \pi_i)$ for every participant's contribution to verify that all $\hat{s}_i' = s_i$.
-            \item With all shares known, anybody can call $\textsf{reconstruct}(s_{i_1}, \dots, s_{i_t})$ on the revealed shares to obtain the secret $s$.
+            \item Each $p_i$ publishes $s_i' = \textsf{decrypt}(\hat{s}_i, sk_i)$, along with a proof $\pi_i$ that $s_i' = s_i$.
+            \item $V$ calls $\textsf{verifyShare}(i, \hat{s}_i, s_i', \pi_i)$ for every participant's contribution to verify that all $s_i' = s_i$.
+            \item With all shares known, anybody can call $\textsf{reconstruct}(s_{i_1}', \dots, s_{i_t}')$ on the revealed shares to obtain the secret $s$.
         \end{itemize} 
 \end{itemize}
 

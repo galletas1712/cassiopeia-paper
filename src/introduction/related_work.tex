@@ -11,10 +11,11 @@ The construction can use a Proof-of-Stake blockchain's validators as the committ
 It also allows for the witness to remain private after decryption.
 One particularly useful application of WE and blockchains is TE~\cite{timelock_puzzles,timelock_from_crc,timed_release_cryptography}.
 Social TE leveraging Identity-Based Encryption (IBE)~\cite{ibe} has been put forth in i-TiRE~\cite{i-TiRE} and tlock~\cite{tlock}.
-Dottling et al.~\cite{mcfly} build a social TE scheme using a weaker Signature-based Witness Encryption (SWE) scheme.
+Dottling et al.~\cite{mcfly} proposed a social TE scheme using a weaker Signature-based Witness Encryption (SWE) scheme.
 
 The critical building block for social TE and WE is a Secret Sharing Scheme~\cite{shamir_ss}. In the blockchain setting, threshold encryption was previously explored in works by Benhamouda et al.~\cite{benhamouda_ecpss} and Goyal et al.~\cite{eweb}.
-For accountability, we use Publicly Verifiable Secret Sharing (PVSS)~\cite{first_pvss_chor,pvss_stadler} and in particular, for our implementation, SCRAPE~\cite{pvss_scrape}.
+For accountability, we use Publicly Verifiable Secret Sharing (PVSS)~\cite{first_pvss_chor,pvss_stadler}.
+For our implementation, we use SCRAPE~\cite{pvss_scrape} as the underlying PVSS scheme.
 
 % TODO: In order to have a shifting committee, a Proactive Secret Sharing Scheme (PSS) is required. If accountability is required, then Publicly Verifiable Secret Sharing (PVSS) is required. In this work, we use a PVSS and our committee is static.
 % What to say here?
