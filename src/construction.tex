@@ -24,7 +24,7 @@ Subsequently, $\hat{c}$ is dispersed publicly, either off-chain to optimize gas 
             \State $c \gets \textsf{PVSS.genDist}(s, [pk_i])$
             \State $y \gets H(s \concat c \concat \mathcal{R} \concat x)$
             \State $\pi \gets P(\sigma, (c, \mathcal{R}, x, y, [pk_i]), s)$
-            \State $id \gets \textsf{Cassiopeia.encrypt}(c, \pi, \mathcal{R}, x, y)$
+            \State $id \gets \textsf{Cassiopeia.encrypt}(c, \mathcal{R}, x, y, \pi)$
             \State $\textsf{disperse}(id, \hat{c})$ % IMPORTANT: dealer MUST be honest for secret recovery right?
         \EndFunction
     \end{algorithmic}
@@ -52,6 +52,7 @@ The committee member then submits the share on-chain by calling the smart contra
 
 Once $|S_{id}| \geq t$, anyone can reconstruct the secret $s$ using \textsf{PVSS.reconstruct}.
 To obtain the original message, $\hat{c}$ is fetched from public storage and decrypted using $s$ as the key to produce $m = Dec_s(\hat{c})$.
+Note that for our correctness proof to follow, we assume committee members submit their shares within $\Delta$ blocks of the secret being claimed, where $\Delta$ is a fixed parameter.
 The full decryption procedure is written in pseudocode below.
 
 \begin{algorithm}[H]
@@ -71,7 +72,7 @@ The full decryption procedure is written in pseudocode below.
     \end{algorithmic}
 \end{algorithm}
 
-However, this protocol has a malleability attack.
+However, this protocol still vulnerable.
 Concretely, let $x'$ be an instance $x'$ of possibly another relation $\mathcal{R}'$ for which the adversary already knows a valid witness $w'$.
 The adversary can act as a malicious dealer, calling \textsf{encrypt} with $c$ and $x'$ instead of $x$, then call \textsf{claim} with $w'$ to start decryption right away.
 Therefore, the adversary can bypass the requirement of finding a valid witness $w$ for $x$ to decrypt the secret encoded by $c$.

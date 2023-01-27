@@ -19,11 +19,14 @@ The primary bottleneck of performance is \textsf{PVSS.verifyDist}, which occurs 
 % Experimental methodology (Ethereum mainnet, Solidity, give GitHub link / open source license).
 
 % Gas cost VS committee size
-We measure the gas cost paid for by the dealer in order to share a secret, which includes verifying the PVSS distribution and the zkSNARK.
-\begin{figure}
-\caption{Gas cost of \textsf{shareSecret} vs committee size}
+We measure the gas cost paid for by the dealer to make an encryption request, which includes verifying the PVSS distribution and the zkSNARK.
+We use a Hardhat node to measure on-chain gas cost relative to $n$ and $t$.
+As can be seen in Figure~\ref{fig:gas_cost}, the maximum committee size such an \textsf{encrypt} call does not exceed the block gas limit is 56. 
+\begin{figure}\label{fig:gas_cost}
+\caption{Gas cost of \textsf{encrypt} vs committee size}
 \includegraphics[width=\textwidth]{gas_cost}
 \end{figure}
 
-% Offchain computation time VS committee size
-% Link to GitHub
+% TODO: Offchain computation time VS committee size
+
+The code for the implementation can be found at \url{https://anonymous.4open.science/r/cassiopeia-3E41/}.

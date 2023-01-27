@@ -1,9 +1,7 @@
 \section{Preliminaries}
     \subsection{Symmetric Encryption}
     Let $s$ be the secret key and $m$ be the message to encrypt.
-    A symmetric encryption scheme contains an encryption algorithm and a decryption algorithm.
-    The encryption algorithm encrypts the message $m$ with the secret key $s$ to produce the ciphertext $c = Enc_s(m)$.
-    The decryption algorithm decrypts the ciphertext $c$ with the secret key $s$ to produce the message $m = Dec_s(c)$.
+    A symmetric encryption scheme contains an encryption algorithm $Enc_s(m)$ that produces a ciphertext $c$ and a decryption algorithm $Dec_s(c)$ that produces the original message $m$.
     \import{./preliminaries}{secret_sharing.tex}
     \import{./preliminaries}{pvss.tex}
     \import{./preliminaries}{zk_snark.tex}
