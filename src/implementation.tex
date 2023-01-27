@@ -14,14 +14,13 @@ In particular, SCRAPE's ciphertext includes a commitment $F_0 = g^s$.
 Since \textsf{PVSS.verifyDist} already checks consistency of $F_0$ with the rest of the ciphertext, we only need to check whether $\log F_0 = s$.
 This involves only one BN254 exponentiation inside of Algorithm \ref{alg:snark_circuit} and makes the circuit size constant, allowing proving time to be constant.
 To optimize the prover time of the zkSNARK further, we compress the problem instance by first hashing $(c, \mathcal{R}, x)$ before passing it into $H$, and instantiate $H$ using Poseidon~\cite{poseidon}, a SNARK friendly hash function.
-The primary bottleneck of performance is \textsf{PVSS.verifyDist}, which occurs on chain and has $O(n)$ complexity using SCRAPE, which is the optimal complexity of any PVSS scheme.
+The primary bottleneck of performance is \textsf{PVSS.verifyDist}, which occurs on chain and has optimal $O(n)$ complexity using SCRAPE.
 
 % Experimental methodology (Ethereum mainnet, Solidity, give GitHub link / open source license).
 
 % Gas cost VS committee size
-We measure the gas cost paid for by the dealer to make an encryption request, which includes verifying the PVSS distribution and the zkSNARK.
-We use a Hardhat node to measure on-chain gas cost relative to $n$ and $t$.
-As can be seen in Figure~\ref{fig:gas_cost}, the maximum committee size such an \textsf{encrypt} call does not exceed the block gas limit is 56. 
+We use a Hardhat node the on-chain gas cost paid for by the dealer in $\textsf{WE.Encrypt}_\mathcal{R}$, relative to $n$ and $t$.
+As can be seen in Figure~\ref{fig:gas_cost}, the maximum committee size that does not consume more gas than the block gas limit is 56. 
 \begin{figure}\label{fig:gas_cost}
 \caption{Gas cost of \textsf{encrypt} vs committee size}
 \includegraphics[width=\textwidth]{gas_cost}

@@ -6,11 +6,9 @@
     \import{./preliminaries}{pvss.tex}
     \import{./preliminaries}{zk_snark.tex}
     \import{./preliminaries}{witness_encryption.tex}
-    \subsection{Risk-Free Rate}
-    Our protocol assumes there exists a per-block risk-free rate $r$ that is agreed upon by all parties participating in the protocol.
-    We assume there exists an exogenous risk-free source of yield.
-    For every block, anyone can deposit $M$ and earn $M(1 + r)$ after one block.
-    The rate $r$ is does not change across time.
+    \subsection{Risk-Free Rate}\label{subsection:prelim-rfr}
+    Our protocol assumes there exists a per-block risk-free rate $r$ agreed upon by all parties participating in the protocol.
+    At any block, anyone can deposit $M$ and earn $M(1 + r)$ after one block via an exogenous risk-free source of yield.
     The oppportunity cost for not earning risk-free yield on $M$ for $k$ blocks is $M(1 + r)^k - M$.
 
 	% \subsection{Timelock Encryption} % TODO: write this up
