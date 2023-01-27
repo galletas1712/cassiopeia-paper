@@ -47,6 +47,7 @@ We introduce a function \textsf{slash} that slashes committee members and transf
 
 \begin{algorithm}[H]
 \caption{Cassiopeia \textsf{slash} function}
+\label{alg:slash}
     \begin{algorithmic}[1]
             \Function{\sf slash}{$i$}
                 \State require($M_{id} = \textsc{claimed} \land \textsf{block.number} \geq D_{id}$)
@@ -84,7 +85,7 @@ Let $\hat{b}$ be the amount of funds a committee member is required to deposit.
 Notice that each committee member's collateral is locked inside the contract for the lifetime of the secret.
 However, the locked funds do not earn interest, which introduces an opportunity cost for committee members.
 To incentivize committee members to participate in the protocol honestly, the reward must be higher than the opportunity cost.
-Concretely, let $d$ be the \emph{maximum lifespan} of the secret in blocks, and $\beta$ be the target net profit for honest committee members.
+Concretely, let $d$ be the \emph{maximum lifespan} of the secret in blocks, and $\beta$ be the agreed-upon time value of the net profit for honest committee members.
 The opportunity cost for locking $\hat{b}$ as collateral inside the contract for $d$ blocks is
 \begin{equation}\label{eq:opp_cost}
     o = \hat{b}((1 + r)^d - 1)
