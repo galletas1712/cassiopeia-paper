@@ -7,13 +7,13 @@ $\mathbb{L}$ be a safe and live ledger, and $H$ be a random oracle.
 We will analyze the security properties of both the non-incentivized and incentivized constructions.
 
 \subsection{Security Analysis of Non-incentivized Construction}
-\begin{theorem}{Correctness.}\label{thm:correctness_hm}
+\begin{theorem}{Correctness (Informal).}\label{thm:correctness_hm}
     Consider an honest dealer and a committee of size $n$ such that at least $t$ are honest.
     The social WE construction in Section~\ref{section:construction_without_incentives} is correct.
     See Appendix A for proof.
 \end{theorem}
 
-\begin{theorem}{Security.}\label{thm:security_hm}
+\begin{theorem}{Security (Informal).}\label{thm:security_hm}
     Consider an honest dealer, and a committee of size $n$ such that less than $t$ are adversarial.
     The social WE construction in Section~\ref{section:construction_without_incentives} is extractably secure.
     See Appendix B for proof.
@@ -44,7 +44,7 @@ We assume there exists a fixed per-block risk-free rate $r$, as outlined in Sect
 \begin{lemma}\label{lemma:honest_compensation}
     If a committee member submits a valid share within the grace period, their time-valued net compensation is at least $\beta$.
 \end{lemma}
-\begin{proof}
+\begin{proof}[Sketch]
     Since the PVSS scheme is verifiable, the contract will only accept the dealer's PVSS ciphertext $c$ if it is valid.
     Furthermore, the contract will only accept a committee member's encrypted share if it is correct.
     Therefore, a committee member will only be paid their reward of $\frac{f}{n}$ if they submit a valid share.
@@ -56,11 +56,11 @@ We assume there exists a fixed per-block risk-free rate $r$, as outlined in Sect
         &= \beta
     \end{align*}
 \end{proof}
-\begin{theorem}{Correctness.}
+\begin{theorem}{Correctness (Informal).}
     Consider an honest dealer, and a committee of size $n$ such that all maintain sufficient collateral for the holding $f$ and at least $t$ are rational.
     The social WE construction in Section~\ref{section:construction_incentives} is correct.
 \end{theorem}
-\begin{proof}
+\begin{proof}[Sketch]
     We follow the same proof as that of Theorem~\ref{thm:correctness_hm} but with added steps.
     If a committee member does not submit a valid share by the deadline, they forfeit both their reward and are slashed.
     By Lemma~\ref{lemma:honest_compensation}, a committee member who submits their shares will receive a net gain of $\beta$.
@@ -70,11 +70,11 @@ We assume there exists a fixed per-block risk-free rate $r$, as outlined in Sect
     As in the proof of Theorem~\ref{thm:correctness_hm} above, the correctness of PVSS ensures that $\textsf{reconstruct}(S_{id}) = s$, and by the correctness of the symmetric encryption scheme, $Dec_s(\hat{c}) = m$.
     Therefore, $\textsf{WE.Dec}_\mathcal{R}$ correctly recovers $m$ in polynomial time.
 \end{proof}
-\begin{theorem}{Payout.}
+\begin{theorem}{Payout (Informal).}
     Consider an honest dealer, and a committee of size $n$ such that all maintain sufficient collateral for the holding $f$.
     If less than $t$ committee members submit valid shares, the dealer receives $a$.
 \end{theorem}
-\begin{proof}
+\begin{proof}[Sketch]
     Let $t'$ be the number of committee membmers who did not submit valid shares.
     Committee members who do not submit valid shares do not receive their reward, which is given to the dealer in Line 14 of Algorithm~\ref{alg:slash}, along with their share of the reparation fee $\frac{a}{|t'|} - \frac{f}{n}$.
     The reparation fee can always be deducted from each committee member's collateral because $\hat{b} \geq \frac{a}{|t'|} - \frac{f}{n}$.

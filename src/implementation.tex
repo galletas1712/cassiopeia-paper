@@ -21,11 +21,11 @@ The primary bottleneck of performance is \textsf{PVSS.verifyDist}, which occurs 
 % Gas cost VS committee size
 We use a Hardhat node the on-chain gas cost paid for by the dealer in $\textsf{WE.Encrypt}_\mathcal{R}$, relative to $n$ and $t$.
 As can be seen in Figure~\ref{fig:gas_cost}, the maximum committee size that does not consume more gas than the block gas limit is 56. 
+The code for the implementation can be found at \url{https://anonymous.4open.science/r/cassiopeia-3E41/}.
 \begin{figure}\label{fig:gas_cost}
 \caption{Gas cost of \textsf{encrypt} vs committee size}
-\includegraphics[width=\textwidth]{gas_cost}
+\includegraphics[width=1.15\textwidth]{gas_cost}
 \end{figure}
 
 % TODO: Offchain computation time VS committee size
 
-The code for the implementation can be found at \url{https://anonymous.4open.science/r/cassiopeia-3E41/}.
