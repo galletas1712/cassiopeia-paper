@@ -6,14 +6,14 @@ We implement all on-chain components of the scheme in Solidity and off-chain com
 We use SCRAPE~\cite{pvss_scrape} as the underlying PVSS scheme by adapting the implementation given by Gurkan et al.~\cite{aggregatable_dkg}.
 Since SCRAPE relies on Type 3 pairings, our PVSS ciphertext is instantiated using the curve BN254~\cite{bn254}, as at the time of writing only BN254 pairings are available as precompiles on Ethereum.
 Similar to the scheme presented by Schoenmakers~\cite{pvss_schoenmakers}, SCRAPE's dealer shares the secret $s$ but the committee recovers $h^s$, where $h$ is the generator of $\mathbb{G}_2$ in BN254.
-Therefore, our implmentation of the scheme requires the dealer to produce $\hat{c}$ by encrypting $m$ with the truncated SHA256 hash of a $h^s$ rather than use $s$ directly.
+Therefore, our implementation of the scheme requires the dealer to produce $\hat{c}$ by encrypting $m$ with the truncated SHA256 hash of a $h^s$ rather than use $s$ directly.
 
 We also optimize the zkSNARK circuit from Algorithm \ref{alg:snark_circuit} needed to ensure non-malleability.
 SCRAPE's instantiation of \textsf{PVSS.verifyDist} allows us to be convinced that $\textsf{PVSS.genDist}(s, [pk_i]) = c$ just by checking one group element in $c$.
 In particular, SCRAPE's ciphertext includes a commitment $F_0 = g^s$.
 Since \textsf{PVSS.verifyDist} already checks consistency of $F_0$ with the rest of the ciphertext, we only need to check whether $\log F_0 = s$.
 This involves only one BN254 exponentiation inside of Algorithm \ref{alg:snark_circuit} and makes the circuit size constant, allowing proving time to be constant.
-To optimize the prover time of the zkSNARK further, we compress the problem instance by first hashing $(c, \mathcal{R}, x)$ before passing it into $H$, and instantiate $H$ using Poseidon~\cite{poseidon}, a SNARK friendly hash function.
+To optimize the proving time of the zkSNARK further, we compress the problem instance by first hashing $(c, \mathcal{R}, x)$ before passing it into $H$, and instantiate $H$ using Poseidon~\cite{poseidon}, a SNARK friendly hash function.
 The primary bottleneck of performance is \textsf{PVSS.verifyDist}, which occurs on chain and has optimal $O(n)$ complexity using SCRAPE.
 
 % Experimental methodology (Ethereum mainnet, Solidity, give GitHub link / open source license).

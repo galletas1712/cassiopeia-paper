@@ -1,6 +1,6 @@
 \section{Analysis}
-We assume a synchronous network model where there exists a probablistic polynomial time adversary.
-The adversarial controls some committee members, which can do whatever they like.
+We assume a synchronous network model where there exists a probabilistic polynomial time adversary.
+The adversary controls some committee members, which can do whatever they like.
 Let \textsf{PVSS} = (\textsf{genDist}, \textsf{verifyDist}, \textsf{decrypt}, \textsf{verifyShare}, \textsf{reconstruct}) be a correct and verifiable PVSS scheme that has secrecy,
 $(G, P, V)$ be a correct and extractably secure zkSNARK scheme, $(Enc, Dec)$ be a correct and secure symmetric encryption scheme,
 $\mathbb{L}$ be a safe and live ledger, and $H$ be a random oracle.
@@ -9,13 +9,13 @@ We will analyze the security properties of both the non-incentivized and incenti
 \subsection{Security Analysis of Non-incentivized Construction}
 \begin{theorem}{Correctness (Informal).}\label{thm:correctness_hm}
     Consider an honest dealer and a committee of size $n$ such that at least $t$ are honest.
-    The social WE construction in Section~\ref{section:construction_without_incentives} is correct.
+    The social Witness Encryption construction in Section~\ref{section:construction_without_incentives} is correct.
     See Appendix A for proof.
 \end{theorem}
 
 \begin{theorem}{Security (Informal).}\label{thm:security_hm}
     Consider an honest dealer, and a committee of size $n$ such that less than $t$ are adversarial.
-    The social WE construction in Section~\ref{section:construction_without_incentives} is extractably secure.
+    The social Witness Encryption construction in Section~\ref{section:construction_without_incentives} is extractably secure.
     See Appendix B for proof.
 \end{theorem}
 
@@ -42,14 +42,14 @@ When both correctness and security are desired with the lowest possible minimum 
 \subsection{Security Analysis of Incentivized Construction}
 We assume there exists a fixed per-block risk-free rate $r$, as outlined in Section~\ref{subsection:prelim-rfr}.
 \begin{lemma}\label{lemma:honest_compensation}
-    If a committee member submits a valid share within the grace period, their time-valued net compensation is at least $\beta$.
+    If a committee member submits a valid share within the grace period, its time-valued net compensation is at least $\beta$.
 \end{lemma}
 \begin{proof}[Sketch]
     Since the PVSS scheme is verifiable, the contract will only accept the dealer's PVSS ciphertext $c$ if it is valid.
     Furthermore, the contract will only accept a committee member's encrypted share if it is correct.
-    Therefore, a committee member will only be paid their reward of $\frac{f}{n}$ if they submit a valid share.
+    Therefore, a committee member will only be paid its reward of $\frac{f}{n}$ if it submits a valid share.
     Let $d$ be the maximum lifetime of the secret.
-    Since the committee member also deposits their collateral for $d$ blocks, the time-valued net compensation of the committee member is
+    Since the committee member also deposits its collateral for $d$ blocks, the committee member's time-valued net compensation is
     \begin{align*}
         \frac{f}{n} - o &= \frac{f}{n} - (\frac{a}{n - t + 1} - \frac{f}{n})((1 + r)^d - 1) \\
         &= \frac{f}{n} - (\frac{\frac{f}{n}(1 + r)^d - \beta}{(1 + r)^d - 1} - \frac{f}{n})((1 + r)^d - 1) \\
@@ -58,7 +58,7 @@ We assume there exists a fixed per-block risk-free rate $r$, as outlined in Sect
 \end{proof}
 \begin{theorem}{Correctness (Informal).}
     Consider an honest dealer, and a committee of size $n$ such that all maintain sufficient collateral for the holding $f$ and at least $t$ are rational.
-    The social WE construction in Section~\ref{section:construction_incentives} is correct.
+    The social Witness Encryption construction in Section~\ref{section:construction_incentives} is correct.
 \end{theorem}
 \begin{proof}[Sketch]
     We follow the same proof as that of Theorem~\ref{thm:correctness_hm} but with added steps.
@@ -75,7 +75,7 @@ We assume there exists a fixed per-block risk-free rate $r$, as outlined in Sect
     If less than $t$ committee members submit valid shares, the dealer receives $a$.
 \end{theorem}
 \begin{proof}[Sketch]
-    Let $t'$ be the number of committee membmers who did not submit valid shares.
+    Let $t'$ be the number of committee members who did not submit valid shares.
     Committee members who do not submit valid shares do not receive their reward, which is given to the dealer in Line 14 of Algorithm~\ref{alg:slash}, along with their share of the reparation fee $\frac{a}{|t'|} - \frac{f}{n}$.
     The reparation fee can always be deducted from each committee member's collateral because $\hat{b} \geq \frac{a}{|t'|} - \frac{f}{n}$.
     Therefore, the dealer receives $a$ in total.

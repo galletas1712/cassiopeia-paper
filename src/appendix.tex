@@ -1,7 +1,7 @@
 \section{Appendix A: Proof of Correctness For Non-incentivized Construction}
 \begin{theorem}{Correctness (Informal).}\label{thm:correctness_hm_appendix}
     Consider an honest dealer and a committee of size $n$ such that at least $t$ are honest.
-    The social WE construction in Section~\ref{section:construction_without_incentives} is correct.
+    The social Witness Encryption construction in Section~\ref{section:construction_without_incentives} is correct.
 \end{theorem}
 \begin{proof}[Sketch]
     First, we will prove that $\textsf{WE.Enc}_\mathcal{R}(1^{\lambda}, x, m)$ successfully returns the secret identifier $id$ in polynomial time.
@@ -57,14 +57,14 @@
 \end{proof}
 \begin{theorem}{Extractable Security (Informal).}\label{thm:security_hm_appendix}
     Consider an honest dealer, and a committee of size $n$ such that less than $t$ are adversarial.
-    The social WE construction in Section~\ref{section:construction_without_incentives} is extractably secure.
+    The social Witness Encryption construction in Section~\ref{section:construction_without_incentives} is extractably secure.
 \end{theorem}
 \begin{proof}[Sketch]
     First, consider the case where the contract will accept only one secret to encrypt in its lifetime.
     The dealer is honest, so no other party (including the adversary) has access to $s$.
     Since $s$ is a bit string of length $\lambda$ and the symmetric encryption scheme is secure, $\hat{c}$ reveals nothing about $s$.
     Similarly, since the PVSS scheme has secrecy, the PVSS ciphertext $c$ reveals nothing about $s$.
-    Furthermore, because less than $t$ committee members are adversarial, no coaliation of adversarial committee members can learn any information about the secret.
+    Furthermore, because less than $t$ committee members are adversarial, no coalition of adversarial committee members can learn any information about the secret.
     The random oracle $H$ ensures that $y$ is uniformly distributed and $Pr[ y = H(s \concat c \concat \mathcal{R} \concat x) \mid c, \mathcal{R}, x ]$ is negligible, so a PPT adversary cannot learn anything about $s$ from $y$.
     By the zero knowledge property of the zkSNARK, the proof $\pi$ also reveals nothing about $s$.
     Therefore, all public values reveal nothing about $s$.
@@ -72,6 +72,6 @@
     Now, suppose the contract may accept multiple secrets in its lifetime.
     By Lemma~\ref{lemma:non_malleability_appendix}, no matter what other encryption requests the adversary makes, she cannot learn any information about $s$, even if she has access to the public arguments of all \textsf{encrypt} calls that will ever occur.
 
-    Without having submitted a valid witness $w$, the advesary does not learn any information about $s$, whether from public data or from interacting with the contract.
+    Without having submitted a valid witness $w$, the adversary does not learn any information about $s$, whether from public data or from interacting with the contract.
     Therefore, if the adversary learns any information about $s$, they must know a valid witness $w$, and the construction is extractably secure.
 \end{proof}

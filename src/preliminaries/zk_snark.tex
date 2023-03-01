@@ -1,7 +1,7 @@
 \subsection{Zero-Knowledge Succinct Non-Interactive Argument of Knowledge (zkSNARK)}
 Let $C$ be an efficiently computable boolean circuit.
 We define the relation $\mathcal{R}_C = \{(x_C, w_C) \mid C(x_C, w_C) = 1 \}$, where $(x_C, w_C)$ is an instance-witness pair.
-A zkSNARK consists of a triple of probablistic polynomial time algorithms $(G, P, V)$ as follows~\cite{snark_defn,groth_snark}:
+A zkSNARK consists of a triple of probabilistic polynomial time algorithms $(G, P, V)$ as follows~\cite{snark_defn,groth_snark}:
 \begin{itemize}
     \item $G$ is a generator that, upon receiving a security parameter input $\lambda$, generates a \emph{reference string} $\sigma$ and a \emph{verification state} $\tau$.
     \item A prover $P(\sigma, x_C, w_C)$ that outputs a proof $\pi$ for the instance $x_C$ and the witness $w_C$.

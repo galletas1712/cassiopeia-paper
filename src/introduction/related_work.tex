@@ -1,19 +1,19 @@
 \paragraph{Related Work.}
 General-purpose Witness Encryption was introduced by Garg et al.~\cite{witness_encryption}.
 The standard security definition of Witness Encryption is \emph{extractable security}~\cite{turing_machine_fe}.
-Most current WE schemes are based on multilinear maps~\cite{witness_encryption,we_multilinear_map} or on indistinguishability obfuscation (iO)~\cite{we_io}. Both construction paths require strong assumptions and are computationally impractical.
-One alternative is to use weaker variants of WE that encompass only a specific subset of \textsf{NP}~\cite{MrNISC}.
+Most current Witness Encryption schemes are based on multilinear maps~\cite{witness_encryption,we_multilinear_map} or on indistinguishability obfuscation (iO)~\cite{we_io}. Both construction paths require strong assumptions and are computationally impractical.
+One alternative is to use weaker variants of Witness Encryption that encompass only a specific subset of \textsf{NP}~\cite{MrNISC}.
 
 % Committee
-Another alternative to build practical WE, which we explore in this work, is to do \emph{social witness encryption} where a committee is entrusted up to an adversarial threshold.
-Goyal et al.~\cite{eweb} were the first to propose an extractable social WE scheme constructed from Proactive Secret Sharing (PSS) that leverages a blockchain.
+Another alternative to build practical Witness Encryption, which we explore in this work, is to do \emph{social witness encryption} where a committee is entrusted up to an adversarial threshold.
+Goyal et al.~\cite{eweb} were the first to propose an extractable social Witness Encryption scheme constructed from Proactive Secret Sharing (PSS) that leverages a blockchain.
 The construction can use a Proof-of-Stake blockchain's validators as the committee.
 It also allows for the witness to remain private after decryption.
-One particularly useful application of WE and blockchains is TE~\cite{timelock_puzzles,timelock_from_crc,timed_release_cryptography}.
-Social TE leveraging Identity-Based Encryption (IBE)~\cite{ibe} has been put forth in i-TiRE~\cite{i-TiRE} and tlock~\cite{tlock}.
-Dottling et al.~\cite{mcfly} proposed a social TE scheme using a weaker Signature-based Witness Encryption (SWE) scheme.
+One particularly useful application of Witness Encryption and blockchains is Timelock Encryption~\cite{timelock_puzzles,timelock_from_crc,timed_release_cryptography}.
+Social Timelock Encryption leveraging Identity-Based Encryption (IBE)~\cite{ibe} has been put forth in i-TiRE~\cite{i-TiRE} and tlock~\cite{tlock}.
+Dottling et al.~\cite{mcfly} proposed a social Timelock Encryption scheme using a weaker Signature-based Witness Encryption (SWE) scheme.
 
-The critical building block for social TE and WE is a Secret Sharing Scheme~\cite{shamir_ss}. In the blockchain setting, threshold encryption was previously explored in works by Benhamouda et al.~\cite{benhamouda_ecpss} and Goyal et al.~\cite{eweb}.
+The critical building block for social Timelock Encryption and Witness Encryption is a Secret Sharing Scheme~\cite{shamir_ss}. In the blockchain setting, threshold encryption was previously explored in works by Benhamouda et al.~\cite{benhamouda_ecpss} and Goyal et al.~\cite{eweb}.
 For accountability, we use Publicly Verifiable Secret Sharing (PVSS)~\cite{first_pvss_chor,pvss_stadler}.
 For our implementation, we use SCRAPE~\cite{pvss_scrape} as the underlying PVSS scheme.
 

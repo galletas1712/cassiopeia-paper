@@ -9,9 +9,9 @@
     \subsection{Risk-Free Rate}\label{subsection:prelim-rfr}
     Our protocol assumes there exists a per-block risk-free rate $r$ agreed upon by all parties participating in the protocol.
     At any block, anyone can deposit $M$ and earn $M(1 + r)$ after one block via an exogenous risk-free source of yield.
-    The oppportunity cost for not earning risk-free yield on $M$ for $k$ blocks is $M(1 + r)^k - M$.
+    The opportunity cost for not earning risk-free yield on $M$ for $k$ blocks is $M(1 + r)^k - M$.
 
 	% \subsection{Timelock Encryption} % TODO: write this up
- %    In the standard model, TE is implemented either through time-lock puzzles~\cite{timed_release_cryptography,timelock_puzzles}, which are computationally-heavy puzzles that cannot be completed without running for a certain amount of time.
- %    However, blockchains provide a common reference clock that can be leveraged as a source of truth for how much time has passed, and can be combined with extractable WE to build TE~\cite{timelock_from_crc}.
- %    An efficient extractable WE scheme would therefore allow TE (and Functional Encryption as well) to be practical.
+ %    In the standard model, Timelock Encryption is implemented either through time-lock puzzles~\cite{timed_release_cryptography,timelock_puzzles}, which are computationally-heavy puzzles that cannot be completed without running for a certain amount of time.
+ %    However, blockchains provide a common reference clock that can be leveraged as a source of truth for how much time has passed, and can be combined with extractable Witness Encryption to build Timelock Encryption~\cite{timelock_from_crc}.
+ %    An efficient extractable Witness Encryption scheme would therefore allow Timelock Encryption (and Functional Encryption as well) to be practical.

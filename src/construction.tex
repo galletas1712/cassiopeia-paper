@@ -2,13 +2,13 @@
 The Cassiopeia smart contract is instantiated for a fixed committee with known public keys of size $n$ and a threshold $t$.
 The threshold $t$ is a public parameter indicating the minimum number of honest committee members required for the construction to be secure.
 
-Suppose the dealer wants to perform \emph{social} WE with public witness security on a message $m$.
+Suppose the dealer wants to perform \emph{social} Witness Encryption with public witness security on a message $m$.
 First, the dealer chooses a relation $\mathcal{R}$ and a corresponding instance $x$.
 % In practice, the pair $(\mathcal{R}, x)$ could be encoded as a smart contract function that accepts $w$ and returns 1 if $(x, w) \in \mathcal{R}$ and 0 otherwise.
 Then, the dealer generates a random bit string $s$ that can be simultaneously used as the secret in a PVSS scheme and the key of a symmetric encryption scheme. % Security of symmetric encryption scheme?
 The dealer runs \textsf{PVSS.genDist}$(s, [pk_i])$ to generate the encrypted secret shares $[\hat{s}_i]$ along with a proof $\pi_D$ that the generated encrypted secret shares are consistent with one another.
 Denote $c = ([\hat{s}_i], \pi_D)$ as the \emph{PVSS ciphertext}.
-Using a symmetric encryption scheme, the dealer encrypts $m$ with key $s$ to produce $\hat{c} = Enc_s(m)$.
+Using a symmetric encryption scheme, the dealer encrypts $m$ with the key $s$ to produce $\hat{c} = Enc_s(m)$.
 The dealer calls the smart contract function \textsf{encrypt} to register the PVSS ciphertext and instance on chain.
 The contract checks whether the proof $\pi_D$ is valid, and if so, makes the encrypted secret shares available to the committee members. 
 A unique identifier for the secret $id$ is returned.
@@ -81,7 +81,7 @@ To mitigate this issue, we ask the dealer to provide a proof in zero knowledge t
 In particular, the dealer generates a commitment to the secret and ciphertext, tying it to $\mathcal{R}$ and $x$ by computing $y = H(s \concat c \concat \mathcal{R} \concat x)$, where $H$ is a hash function that approximates a random oracle.
 The dealer then generates a zkSNARK proof of knowledge of $s$ such that if the encrypted shares were decrypted and recombined, the result would be $s$, and that $y = H(s \concat c \concat \mathcal{R} \concat x)$.
 More formally, the proof $\pi = P(\sigma, (c, \mathcal{R}, x, y, [pk_i]), s)$.
-Without knowledge of $s$, an adverasial dealer cannot use the same ciphertext $c$ with another instance $x'$.
+Without knowledge of $s$, an adversarial dealer cannot use the same ciphertext $c$ with another instance $x'$.
 
 \begin{algorithm}
     \caption{zkSNARK circuit}

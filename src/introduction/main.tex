@@ -9,15 +9,15 @@
 % In the blockchain setting, timelock is only a special case of Witness Encryption
 
 % TODO: hook
-Witness Encryption (WE)~\cite{witness_encryption} is a cryptographic scheme where a message is encrypted such that it can only be decrypted when a solution (also called the ``witness'') to a computational puzzle is presented.
+Witness Encryption ~\cite{witness_encryption} is a cryptographic scheme where a message is encrypted such that it can only be decrypted when a solution (also called the ``witness'') to a computational puzzle is presented.
 For example, a message may be witness-encrypted such that it can only be decrypted if for some connected graph, a Hamiltonian cycle is found.
-A particularly useful instantiation of WE in the blockchain setting is Timelock Encryption (TE)~\cite{timelock_puzzles,timelock_from_crc,timed_release_cryptography}, where a message is encrypted such that it can only be decrypted after a set unlock time.
+A particularly useful instantiation of Witness Encryption in the blockchain setting is Timelock Encryption ~\cite{timelock_puzzles,timelock_from_crc,timed_release_cryptography}, where a message is encrypted such that it can only be decrypted after a set unlock time.
 This enables important use cases in DeFi such as sealed bid auctions and front-running prevention~\cite{i-TiRE}.
 
-Though WE is still impractical under standard assumptions, the ``honest majority'' assumption in modern blockchains can be leveraged to make WE practical.
+Though Witness Encryption is still impractical under standard assumptions, the ``honest majority'' assumption in modern blockchains can be leveraged to make Witness Encryption practical.
 We do so by asking a committee to keep the secret and release it for us when the witness is presented.
 As long as a majority of the committee is honest, the secret is revealed at the right time.
-Our goal is to make WE practical and composable for use in DeFi.
+Our goal is to make Witness Encryption practical and composable for use in DeFi.
 Furthermore, we hold committee members accountable for releasing correct decryption keys in a timely manner.
 
 \import{./introduction}{contributions.tex}
