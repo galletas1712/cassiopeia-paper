@@ -35,7 +35,7 @@ Now consider the case where the secret is irrecoverable.
 In particular, there are less than $t$ committee members who submit their shares, so there are less than $t$ honest committee members.
 Every dishonest committee member has their collateral slashed equally, on top of already not receiving their reward.
 Concretely, suppose only $t'$ committee members reveal valid shares.
-Let $a$ be the reparation price of the secret and $b$ be the amount of collateral slashed per committee member.
+Let $b$ be the amount of collateral slashed per committee member, and suppose the smart contract is given the reparation price $a$.
 The sum of every dishonest committee member's slashed collateral and forfeited reward must add up to $a$, i.e. $a = (n - t')(b + \frac{f}{n})$.
 Therefore, each dishonest committee member is slashed exactly
 \begin{equation}\label{eq:slash_amount}
@@ -92,7 +92,8 @@ The opportunity cost for locking $\hat{b}$ as collateral inside the contract for
     o = \hat{b}((1 + r)^d - 1)
 \end{equation}
 where $r$ is the per-block risk-free rate agreed upon by all committee members.
-Using $\beta = \frac{f}{n} - o$, Equation~\ref{eq:collateral_requirement} and Equation~\ref{eq:opp_cost}, we can derive the collateral requirement $\hat{b}$ as follows:
+Now, we can derive the reparation price $a$ instead of assuming it is given to the smart contract.
+Using $\beta = \frac{f}{n} - o$, Equation~\ref{eq:collateral_requirement} and Equation~\ref{eq:opp_cost}, we have:
 \begin{gather}\label{eq:collateral_from_holding_fee}
     % \frac{f}{n} = \beta + \hat{b}((1 + r)^d - 1) \\
     % \frac{f}{n} = \beta + (\frac{a}{n - t + 1} - \frac{f}{n})((1 + r)^d - 1) \\ 

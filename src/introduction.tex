@@ -37,10 +37,18 @@ Alice will entrust a fixed committee to keep her secret and release it if someon
 She trusts that at a majority of the committee are honest.
 Alice splits her secret into shares, one for each committee member, such that a majority of them are required to reconstruct the original secret and each committee member is only able to decrypt its own share.
 Alice then calls a smart contract function to publish the encrypted shares for them to access.
+She also attaches a zero-knowledge proof of knowledge of the secret to ensure she is honest and actually knows the secret.
 The contract verifies that Alice split her secret into shares correctly.
 When the contract receives a solution to the puzzle, it enables committee members to submit their decrypted shares to the contract.
 When a committee member submits a share, the contract verifies that it is consistent with the corresponding encrypted share Alice posted before accepting the share.
 As long as at least a majority of the committee members revealed their shares, Alice's secret can be reconstructed by anyone.
+
+We also propose an incentivized version of the above scheme which includes fees and slashing.
+Each committee member deposits a stake in the contract.
+If a committee member correctly reveals its decrypted shares, it is awarded a fee.
+Otherwise, its stake is slashed.
+We ensure the fee is sufficient to incentivize honest committee member participation, using the risk-free rate as a benchmark.
+Note that the incentivized version of the scheme requires Alice to provide a deadline upfront at which the secret can be decrypted even without a witness.
 
 \paragraph{Related Work.}
 General-purpose Witness Encryption was introduced by Garg et al.~\cite{witness_encryption}.

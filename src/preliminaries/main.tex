@@ -7,7 +7,8 @@
     \import{./preliminaries}{zk_snark.tex}
     \import{./preliminaries}{witness_encryption.tex}
     \subsection{Risk-Free Rate}\label{subsection:prelim-rfr}
-    Our protocol assumes there exists a per-block risk-free rate $r$ agreed upon by all parties participating in the protocol.
+    The fees awarded to committee members should be at least the return on an exogenous risk-free source of yield, otherwise rational committee members will stop participating in the protocol.
+    Therefore, we assume there exists a per-block risk-free rate $r$ agreed upon by all parties participating in the protocol.
     At any block, anyone can deposit $M$ and earn $M(1 + r)$ after one block via an exogenous risk-free source of yield.
     The opportunity cost for not earning risk-free yield on $M$ for $k$ blocks is $M(1 + r)^k - M$.
 

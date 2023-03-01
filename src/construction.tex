@@ -7,6 +7,9 @@ First, the dealer chooses a relation $\mathcal{R}$ and a corresponding instance 
 % In practice, the pair $(\mathcal{R}, x)$ could be encoded as a smart contract function that accepts $w$ and returns 1 if $(x, w) \in \mathcal{R}$ and 0 otherwise.
 Then, the dealer generates a random bit string $s$ that can be simultaneously used as the secret in a PVSS scheme and the key of a symmetric encryption scheme. % Security of symmetric encryption scheme?
 The dealer runs \textsf{PVSS.genDist}$(s, [pk_i])$ to generate the encrypted secret shares $[\hat{s}_i]$ along with a proof $\pi_D$ that the generated encrypted secret shares are consistent with one another.
+Note that a valid proof $\pi_D$ guarantees that \textsf{Cassiopeia.encrypt} prevents committee members from maintaining shares of invalid secrets.
+It becomes vital to security in the incentivized construction in Section~\ref{section:construction_incentives}.
+
 Denote $c = ([\hat{s}_i], \pi_D)$ as the \emph{PVSS ciphertext}.
 Using a symmetric encryption scheme, the dealer encrypts $m$ with the key $s$ to produce $\hat{c} = Enc_s(m)$.
 The dealer calls the smart contract function \textsf{encrypt} to register the PVSS ciphertext and instance on chain.
@@ -15,7 +18,7 @@ A unique identifier for the secret $id$ is returned.
 Subsequently, $\hat{c}$ is dispersed publicly, either off-chain to optimize gas costs or on-chain for data availability.
 
 \begin{algorithm}[H]
-\caption{Dealer interaction with Cassiopeia}
+\caption{Subroutine: dealer performing Witness Encryption}
 \label{alg:dealer_no_incentives}
     \begin{algorithmic}[1]
         \Function{$\text{\sf WE.Enc}_{\mathcal{R}}$}{$1^{\lambda}, x, m$}
@@ -38,7 +41,7 @@ A committee member does so by first using \textsf{PVSS.decrypt} to obtain a decr
 The committee member then submits the share on-chain by calling the smart contract function \textsf{submitShare}, which verifies the proof and stores $s'_i$ in the set of decrypted shares $S_{id}$ inside the contract.
 
 \begin{algorithm}[H]
-    \caption{Procedure for committee members to submit shares}
+    \caption{Subroutine: committee members submitting shares}
 \label{alg:committee_member_no_incentives}
     \begin{algorithmic}[1]
         \Let{i}{\text{index of own public key in $[pk_i]$}}
@@ -56,7 +59,7 @@ Note that for our correctness proof to follow, we assume committee members submi
 The full decryption procedure is written in pseudocode below.
 
 \begin{algorithm}[H]
-    \caption{Decryption Procedure}
+    \caption{Decryption Procedure (performed by anybody)}
     \label{alg:decryption_no_incentives}
     \begin{algorithmic}[1]
         \Let{id}{\text{identifier of secret to decrypt}}
@@ -72,7 +75,7 @@ The full decryption procedure is written in pseudocode below.
     \end{algorithmic}
 \end{algorithm}
 
-However, this protocol still vulnerable.
+However, this protocol still vulnerable to malleability attacks.
 Concretely, let $x'$ be an instance $x'$ of possibly another relation $\mathcal{R}'$ for which the adversary already knows a valid witness $w'$.
 The adversary can act as a malicious dealer, calling \textsf{encrypt} with $c$ and $x'$ instead of $x$, then call \textsf{claim} with $w'$ to start decryption right away.
 Therefore, the adversary can bypass the requirement of finding a valid witness $w$ for $x$ to decrypt the secret encoded by $c$.
@@ -84,7 +87,7 @@ More formally, the proof $\pi = P(\sigma, (c, \mathcal{R}, x, y, [pk_i]), s)$.
 Without knowledge of $s$, an adversarial dealer cannot use the same ciphertext $c$ with another instance $x'$.
 
 \begin{algorithm}
-    \caption{zkSNARK circuit}
+    \caption{zkSNARK circuit defined by $\mathcal{R}_C$}
     \label{alg:snark_circuit}
     \begin{algorithmic}[1]
         \Require $x_C = (c, \mathcal{R}, x, y, [pk_i])$, $w_C = s$
@@ -95,8 +98,9 @@ Without knowledge of $s$, an adversarial dealer cannot use the same ciphertext $
 \end{algorithm}
 
 When the dealer calls \textsf{encrypt}, he must include $y$ and $\pi$.
-The contract verifies that the zero knowledge proof $\pi$ is valid, on top of already verifying the PVSS ciphertext as outlined above.
-Concretely, the proof must be valid according to $V(\tau, (c, \mathcal{R}, x, y, [pk_i]), \pi) = 1$.
+The contract verifies that the zero knowledge proof $\pi$ is valid with respect to $c$, $\mathcal{R}$ and $y$, on top of already verifying the PVSS ciphertext as outlined above.
+Concretely, the $\pi$ must be valid according to $V(\tau, (c, \mathcal{R}, x, y, [pk_i]), \pi) = 1$.
+Without a valid $\pi$, an adversary would not be able to carry out a malleability attack.
 The Cassiopeia smart contract is written in pseudocode below.
 
 \begin{algorithm}[H]
