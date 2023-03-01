@@ -1,0 +1,66 @@
+\section{Introduction}
+
+% Hook - a will, a secret encrypted into the future - literary (message in a bottle)
+% Problem statement (people wanted to do timelock and witness encryption for a long time)
+% Without blockchains it's completely impractical
+% New assumption of honest majority in blockchains - ask a committee to keep a secret and release it for us after a certain time
+% We want to make this composable for use in DeFi
+% Make accessible as a service on chain - accountability
+% In the blockchain setting, timelock is only a special case of Witness Encryption
+
+% TODO: hook
+Witness Encryption ~\cite{witness_encryption} is a cryptographic scheme where a message is encrypted such that it can only be decrypted when a solution (also called the ``witness'') to a computational puzzle is presented.
+For example, a message may be witness-encrypted such that it can only be decrypted if for some connected graph, a Hamiltonian cycle is found.
+A particularly useful instantiation of Witness Encryption in the blockchain setting is Timelock Encryption ~\cite{timelock_puzzles,timelock_from_crc,timed_release_cryptography}, where a message is encrypted such that it can only be decrypted after a set unlock time.
+This enables important use cases in DeFi such as sealed bid auctions and front-running prevention~\cite{i-TiRE}.
+
+Though Witness Encryption is still impractical under standard assumptions, the ``honest majority'' assumption in modern blockchains can be leveraged to make Witness Encryption practical.
+We do so by asking a committee to keep the secret and release it for us when the witness is presented.
+As long as a majority of the committee is honest, the secret is revealed at the right time.
+Our goal is to make Witness Encryption practical and composable for use in DeFi.
+Furthermore, we hold committee members accountable for releasing correct decryption keys in a timely manner.
+
+\paragraph{Our Contributions.} We summarize our contributions as follows:
+\begin{enumerate}
+    \item We put forth a smart contract-based construction for Witness Encryption.
+    \item We explore whether our scheme is correct and secure under the honest majority and rational majority settings.
+    \item We implement the construction as an open-source Solidity smart contract, benchmark gas usage on Ethereum, and provide our parameterization of the scheme.
+\end{enumerate}
+
+Traditionally Witness Encryption schemes require the witness to remain private during decryption.
+However, in many practical use cases, a public witness is useful as the secret does not remain hidden.
+We focus on constructing Witness Encryption with public witness security, but it is possible to extend our scheme to support private decryption.
+
+\paragraph{Construction Overview.}
+Suppose Alice wants to encrypt a secret with an instance of a puzzle.
+Alice will entrust a fixed committee to keep her secret and release it if someone presents a solution to the puzzle to the smart contract.
+She trusts that at a majority of the committee are honest.
+Alice splits her secret into shares, one for each committee member, such that a majority of them are required to reconstruct the original secret and each committee member is only able to decrypt its own share.
+Alice then calls a smart contract function to publish the encrypted shares for them to access.
+The contract verifies that Alice split her secret into shares correctly.
+When the contract receives a solution to the puzzle, it enables committee members to submit their decrypted shares to the contract.
+When a committee member submits a share, the contract verifies that it is consistent with the corresponding encrypted share Alice posted before accepting the share.
+As long as at least a majority of the committee members revealed their shares, Alice's secret can be reconstructed by anyone.
+
+\paragraph{Related Work.}
+General-purpose Witness Encryption was introduced by Garg et al.~\cite{witness_encryption}.
+The standard security definition of Witness Encryption is \emph{extractable security}~\cite{turing_machine_fe}.
+Most current Witness Encryption schemes are based on multilinear maps~\cite{witness_encryption,we_multilinear_map} or on indistinguishability obfuscation (iO)~\cite{we_io}. Both construction paths require strong assumptions and are computationally impractical.
+One alternative is to use weaker variants of Witness Encryption that encompass only a specific subset of \textsf{NP}~\cite{MrNISC}.
+
+% Committee
+Another alternative to build practical Witness Encryption, which we explore in this work, is to do \emph{social witness encryption} where a committee is entrusted up to an adversarial threshold.
+Goyal et al.~\cite{eweb} were the first to propose an extractable social Witness Encryption scheme constructed from Proactive Secret Sharing (PSS) that leverages a blockchain.
+The construction can use a Proof-of-Stake blockchain's validators as the committee.
+It also allows for the witness to remain private after decryption.
+One particularly useful application of Witness Encryption and blockchains is Timelock Encryption~\cite{timelock_puzzles,timelock_from_crc,timed_release_cryptography}.
+Social Timelock Encryption leveraging Identity-Based Encryption (IBE)~\cite{ibe} has been put forth in i-TiRE~\cite{i-TiRE} and tlock~\cite{tlock}.
+Dottling et al.~\cite{mcfly} proposed a social Timelock Encryption scheme using a weaker Signature-based Witness Encryption (SWE) scheme.
+
+The critical building block for social Timelock Encryption and Witness Encryption is a Secret Sharing Scheme~\cite{shamir_ss}. In the blockchain setting, threshold encryption was previously explored in works by Benhamouda et al.~\cite{benhamouda_ecpss} and Goyal et al.~\cite{eweb}.
+For accountability, we use Publicly Verifiable Secret Sharing (PVSS)~\cite{first_pvss_chor,pvss_stadler}.
+For our implementation, we use SCRAPE~\cite{pvss_scrape} as the underlying PVSS scheme.
+
+\paragraph{Applications.}
+Witness Encryption can be used to build powerful cryptographic primitives such as succinct Functional Encryption~\cite{functional_encryption} for Turing machines~\cite{turing_machine_fe}.
+When combined with a blockchain, Witness Encryption can also be leveraged to achieve fairness against dishonest majority in a secure multi-party computation protocol~\cite{we_mpc_fairness}.
