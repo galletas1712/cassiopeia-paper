@@ -8,13 +8,13 @@ We will analyze the security properties of both the non-incentivized and incenti
 
 \subsection{Security Analysis of Non-incentivized Construction}
 \begin{theorem}{Correctness (Informal).}\label{thm:correctness_hm}
-    Consider an honest dealer and a committee of size $n$ such that at least $t$ are honest.
+    Consider an honest dealer and a committee of size $n$ such that at least $t$ members are honest.
     The social Witness Encryption construction in Section~\ref{section:construction_without_incentives} is correct.
     See Appendix A for proof.
 \end{theorem}
 
 \begin{theorem}{Security (Informal).}\label{thm:security_hm}
-    Consider an honest dealer, and a committee of size $n$ such that less than $t$ are adversarial.
+    Consider an honest dealer, and a committee of size $n$ such that less than $t$ members are adversarial.
     The social Witness Encryption construction in Section~\ref{section:construction_without_incentives} is extractably secure.
     See Appendix B for proof.
 \end{theorem}
@@ -57,7 +57,7 @@ We assume there exists a fixed per-block risk-free rate $r$, as outlined in Sect
     \end{align*}
 \end{proof}
 \begin{theorem}{Correctness (Informal).}
-    Consider an honest dealer, and a committee of size $n$ such that all maintain sufficient collateral for the holding $f$ and at least $t$ are rational.
+    Consider an honest dealer, and a committee of size $n$ such that all maintain sufficient collateral for the holding $f$ and at least $t$ members are rational.
     The social Witness Encryption construction in Section~\ref{section:construction_incentives} is correct.
 \end{theorem}
 \begin{proof}[Sketch]

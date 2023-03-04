@@ -44,9 +44,9 @@ Therefore, each dishonest committee member is slashed exactly
 The contract keeps track of an escrow balance $cl_i$ for each committee member $i$ that is used as collateral.
 Whenever the committee member is slashed, $cl_i$ is deducted.
 Whenever the committee member earns rewards (i.e. committee member $i$ submits a valid share), $cl_i$ is added to.
-We introduce a function \textsf{slash} that slashes committee members and transfers the reparation price to the dealer as outlined above.
+We introduce a function \textsf{slash} (Algorithm~\ref{alg:slash}) that slashes committee members and transfers the reparation price to the dealer as outlined above.
 
-\begin{algorithm}[H]
+\begin{algorithm}[h]
 \caption{Cassiopeia \textsf{slash} function}
 \label{alg:slash}
     \begin{algorithmic}[1]
@@ -116,10 +116,11 @@ For the maximum lifespan of the secret to be known, everyone must agree upon a s
 The deadline $D_{id}$ is set to $\Delta$ blocks after the secret is claimed.
 Honest committee members must submit their shares by block $D_{id}$.
 Therefore, the secret's maximum lifespan is $d = T + \Delta$, and is known at encryption time.
-The \textsf{claim} function is modified as follows.
+We modify the \textsf{claim} function as in Algorithm~\ref{alg:claim}.
 
-\begin{algorithm}[H]
+\begin{algorithm}[h]
 \caption{Modified Cassiopeia \textsf{claim} function}
+\label{alg:claim}
     \begin{algorithmic}[1]
             \Function{\sf claim}{$id, w$}
                 \State require($M_{id} = \bot$)
@@ -136,9 +137,9 @@ We call a secret \emph{active} if \textsf{slash} has not been called for the sec
 Because there may be many active secrets at any point in time, the contract must ensure that there are sufficient funds locked in escrow to cover all reparation price liabilities.
 To do so, the contract keeps track of $l$, which is equal to the sum of $\hat{b}$ for all secrets.
 During an encryption request, the contract ensures that for each committee member $i$, the remaining unused collateral $cl_i - l$ is sufficient to cover $\hat{b}$ for the new secret (see Line 9 of Algorithm~\ref{alg:encrypt_incentives}).
+The fully modified \textsf{encrypt} function is shown below in Algorithm~\ref{alg:encrypt_incentives}.
 
-The fully modified \textsf{encrypt} function is shown below.
-\begin{algorithm}[H]
+\begin{algorithm}[h]
 \caption{Modified Cassiopeia \textsf{encrypt} function}
 \label{alg:encrypt_incentives}
     \begin{algorithmic}[1]
@@ -172,10 +173,11 @@ The only requirement is that the remaining collateral is sufficient to cover the
 Suppose committee member $i$ wants to withdraw $\delta_{cl}$.
 They can do so only if $cl_i - \delta_{cl} \geq l$.
 Note that the contract also keeps track of the address of each committee member $addr_i$ to ensure only committee member $i$ is entitled to their collateral.
-The pseudocode for depositing and withdrawing collateral is shown below.
+The pseudocode for depositing and withdrawing collateral is shown in Algorithm~\ref{alg:deposit_withdraw}.
 
-\begin{algorithm}[H]
+\begin{algorithm}[h]
 \caption{Depositing and withdrawing collateral from Cassiopeia}
+\label{alg:deposit_withdraw}
     \begin{algorithmic}[1]
         \Function{\sf depositCollateral}{$i$} \textbf{payable}
             \State $cl_i \gets cl_i + \textsf{msg.value}$

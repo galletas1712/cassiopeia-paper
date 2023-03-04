@@ -63,7 +63,7 @@ $$
     %     }
     % }
 
-    %     \begin{algorithm}[H]
+    %     \begin{algorithm}[h]
 %     \caption{Cassiopeia Smart Contract}
 %         \begin{algorithmic}[1]
 %             \Contract{Cassiopeia}
@@ -131,7 +131,7 @@ $$
 % \item Replayability -- OK
 % \end{enumerate}
 
-%     \begin{algorithm}[H]
+%     \begin{algorithm}[h]
 %     \caption{Cassiopeia Smart Contract}
 %         \begin{algorithmic}[1]
 %             \Contract{Cassiopeia}
@@ -214,7 +214,7 @@ $$
 % The insurance payout occurs in a smart contract function \textsf{settle}, which can only be called once per secret after the deadline $D_i$ has passed.
 % The concrete implementation is shown below.
 
-% \begin{algorithm}[H]
+% \begin{algorithm}[h]
 % \caption{Cassiopeia \textsf{settle} function}
 %     \begin{algorithmic}[1]
 %             \Function{\sf settle}{$i$}
@@ -260,7 +260,7 @@ $$
 % $k$ will appear alongside $\mathcal{R}$ and $x$ in proving and verification of the zkSNARK.
 % The augmented functionality of \textsf{encrypt} is described in pseudocode below.
 
-% \begin{algorithm}[H]
+% \begin{algorithm}[h]
 % \caption{Modified Cassiopeia \textsf{encrypt} function}
 %     \begin{algorithmic}[1]
 %             \Function{\sf encrypt}{$c, \mathcal{R}, x, k, y, \pi, b$} \textbf{payable}
@@ -290,7 +290,7 @@ $$
 % The smart contract also keeps track of the address of each committee member $addr_j$ to ensure only committee member $j$ is entitled to their collateral.
 % The pseudocode for depositing and withdrawing collateral is shown below.
 
-% \begin{algorithm}[H]
+% \begin{algorithm}[h]
 % \caption{Depositing and withdrawing collateral from Cassiopeia}
 %     \begin{algorithmic}[1]
 %         \Function{\sf depositCollateral}{$j$} \textbf{payable}
@@ -404,7 +404,7 @@ $$
 % The smart contract checks that the committee member has enough collateral to cover the beneficiary payout for currently active secrets, i.e.
 % $cl_j - \delta_{cl} \geq \frac{L}{n - t + 1}$.
 
-% \begin{algorithm}[H]
+% \begin{algorithm}[h]
 % \caption{Cassiopeia Smart Contract (With Incentives and Hybrid with Timelock Encryption)}
 %     \begin{algorithmic}[1]
 %         \Contract{CassiopeiaHybridTE}
