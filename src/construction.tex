@@ -36,6 +36,9 @@ Subsequently, $\hat{c}$ is dispersed publicly, either off-chain to optimize gas 
 Anybody who obtains a valid witness $w$ can call the smart contract function \textsf{claim} to start decryption (Algorithm~\ref{alg:decryption_no_incentives}).
 The smart contract checks that $w$ is indeed a valid witness such that $(x, w) \in \mathcal{R}$.
 If so, a flag $M_{id}$ is set indicating the secret has been claimed.
+Note that to support private decryption, one could provide a zkSNARK proof as the witness $w$ for a boolean circuit corresponding to $x$ and $\mathcal{R}$~\cite{eweb}.
+This way, $w$ reveals nothing about the actual secret witness while still retaining the same correctness and security properties.
+
 Now, committee members will decrypt their encrypted shares $\hat{s}_i$ and submit the result on chain (Algorithm~\ref{alg:committee_member_no_incentives}).
 A committee member does so by first using \textsf{PVSS.decrypt} to obtain a decryption $s'_i$ and a proof $\pi_i$ that $s'_i$ is a valid decryption, i.e. $s'_i = s_i$.
 The committee member then submits the share on-chain by calling the smart contract function \textsf{submitShare}, which verifies the proof and stores $s'_i$ in the set of decrypted shares $S_{id}$ inside the contract.

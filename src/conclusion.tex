@@ -1,0 +1,10 @@
+\section{Conclusion}\label{section:conclusion}
+In this work, we propose Cassiopeia, a social Witness Encryption scheme instantiated as an on-chain smart contract, along with an incentivized version of the scheme.
+Our construction combines a publicly verifiable secret sharing scheme and zkSNARKs to provide security against malleability attacks.
+In doing so, the scheme is also resistant to front-running attacks which are widespread when interacting with smart contracts.
+We also provide a Solidity smart contract implementation of the non-incentivized scheme.
+The non-incentivized construction is correct and secure under honest majority, and the incentivized construction is correct under rational majority.
+
+Future work will focus on ensuring security for the incentivized scheme under rational majority.
+Threshold Information Escrows have been proposed with incentivized security~\cite{watermarking_ot}, and could potentially be integrated with our work.
+Furthermore, we could also allow for a dynamic committee by using proactive secret sharing, which would make our protocol more robust to security attacks.

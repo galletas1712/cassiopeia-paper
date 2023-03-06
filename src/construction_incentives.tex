@@ -134,9 +134,9 @@ We modify the \textsf{claim} function as in Algorithm~\ref{alg:claim}.
 
 % Many secrets liabilities
 We call a secret \emph{active} if \textsf{slash} has not been called for the secret.
-Because there may be many active secrets at any point in time, the contract must ensure that there are sufficient funds locked in escrow to cover all reparation price liabilities.
-To do so, the contract keeps track of $l$, which is equal to the sum of $\hat{b}$ for all secrets.
-During an encryption request, the contract ensures that for each committee member $i$, the remaining unused collateral $cl_i - l$ is sufficient to cover $\hat{b}$ for the new secret (see Line 9 of Algorithm~\ref{alg:encrypt_incentives}).
+Because many secrets may be active, the contract must ensure it has sufficient funds in escrow to cover all potential reparations.
+Let $l$ be the sum of $\hat{b}$ for all secrets.
+In {\sf encrypt}, the contract ensures the remaining collateral $cl_i - l$ is at least the new secret's $\hat{b}$..
 The fully modified \textsf{encrypt} function is shown below in Algorithm~\ref{alg:encrypt_incentives}.
 
 \begin{algorithm}[h]
@@ -168,25 +168,6 @@ The fully modified \textsf{encrypt} function is shown below in Algorithm~\ref{al
     \end{algorithmic}
 \end{algorithm}
 
-Lastly, we must allow committee members to withdraw their collateral to collect their fees or stop participating in the protocol.
+Lastly, we must allow committee members to deposit and withdraw their collateral to collect fees or stop participating in the protocol.
 The only requirement is that the remaining collateral is sufficient to cover the worst case reparation price for all active secrets.
-Suppose committee member $i$ wants to withdraw $\delta_{cl}$.
-They can do so only if $cl_i - \delta_{cl} \geq l$.
-Note that the contract also keeps track of the address of each committee member $addr_i$ to ensure only committee member $i$ is entitled to their collateral.
-The pseudocode for depositing and withdrawing collateral is shown in Algorithm~\ref{alg:deposit_withdraw}.
-
-\begin{algorithm}[h]
-\caption{Depositing and withdrawing collateral from Cassiopeia}
-\label{alg:deposit_withdraw}
-    \begin{algorithmic}[1]
-        \Function{\sf depositCollateral}{$i$} \textbf{payable}
-            \State $cl_i \gets cl_i + \textsf{msg.value}$
-        \EndFunction
-
-        \Function{\sf withdrawCollateral}{$i, \delta_{cl}$}
-            \State require($\textsf{msg.sender} = addr_i \land cl_i - \delta_{cl} \geq l$)
-            \State $cl_i \gets cl_i - \delta_{cl}$
-            \State $\textsf{msg.sender.send}(\delta_{cl})$
-        \EndFunction
-    \end{algorithmic}
-\end{algorithm}
+Concretely, committee member $i$ can withdraw $\delta_{cl}$ only if $cl_i - \delta_{cl} \geq l$.
