@@ -8,7 +8,6 @@
 % Make accessible as a service on chain - accountability
 % In the blockchain setting, timelock is only a special case of Witness Encryption
 
-% TODO: hook
 Witness Encryption ~\cite{witness_encryption} is a cryptographic scheme where a message is encrypted such that it can only be decrypted when a solution (also called the ``witness'') to a computational puzzle is presented.
 For example, a message may be witness-encrypted such that it can only be decrypted if for some connected graph, a Hamiltonian cycle is found.
 A particularly useful instantiation of Witness Encryption in the blockchain setting is Timelock Encryption ~\cite{timelock_puzzles,timelock_from_crc,timed_release_cryptography}, where a message is encrypted such that it can only be decrypted after a set unlock time.
@@ -37,7 +36,7 @@ Alice will entrust a fixed committee to keep her secret and release it if someon
 She trusts that at a majority of the committee are honest.
 Alice splits her secret into shares, one for each committee member, such that a majority of them are required to reconstruct the original secret and each committee member is only able to decrypt its own share.
 Alice then calls a smart contract function to publish the encrypted shares for them to access.
-She also attaches a zero-knowledge proof of knowledge of the secret to ensure she is honest and actually knows the secret.
+She also attaches a zero-knowledge proof of knowledge of the secret (in the form of a zkSNARK) to ensure she is honest and actually knows the secret.
 The contract verifies that Alice split her secret into shares correctly.
 When the contract receives a solution to the puzzle, it enables committee members to submit their decrypted shares to the contract.
 When a committee member submits a share, the contract verifies that it is consistent with the corresponding encrypted share Alice posted before accepting the share.
@@ -47,8 +46,8 @@ We also propose an incentivized version of the above scheme which includes fees 
 Each committee member deposits a stake in the contract.
 If a committee member correctly reveals its decrypted shares, it is awarded a fee.
 Otherwise, its stake is slashed.
-We ensure the fee is sufficient to incentivize honest committee member participation, using the risk-free rate as a benchmark.
-Note that the incentivized version of the scheme requires Alice to provide a deadline upfront at which the secret can be decrypted even without a witness.
+We ensure the fee is sufficient to incentivize honest committee member participation, using the risk-free rate as a benchmark for the opportunity cost.
+Note that the incentivized version of the scheme requires Alice to provide a maximum secret lifespan upfront after which the secret can be decrypted even without a witness.
 
 \paragraph{Related Work.}
 General-purpose Witness Encryption was introduced by Garg et al.~\cite{witness_encryption}.
@@ -72,3 +71,4 @@ For our implementation, we use SCRAPE~\cite{pvss_scrape} as the underlying PVSS 
 \paragraph{Applications.}
 Witness Encryption can be used to build powerful cryptographic primitives such as succinct Functional Encryption~\cite{functional_encryption,fe_survey_review} for Turing machines~\cite{turing_machine_fe}.
 When combined with a blockchain, Witness Encryption can also be leveraged to achieve fairness against dishonest majority in a secure multi-party computation protocol~\cite{we_mpc_fairness}.
+More practically, it can also be used to instantiate Timelock Encryption, which can be applied towards building new forms of wallets~\cite{horus} among other applications.

@@ -37,7 +37,6 @@ Furthermore, the construction is also extractably secure, because the number of 
 Note that the construction may be instantiated with different values of $t$.
 Since the minimum number of honest committee members needed to ensure correctness and security is $t$ and $n - t + 1$ respectively, higher $t$ ensures a higher degree of correctness for lower security and vice versa.
 When both correctness and security are desired with the lowest possible minimum required number of honest committee members, we optimize for $\argmin_{t} \min(t, n - t + 1)$, which occurs when $t = \frac{n}{2}$, corresponding with the honest majority case.
-% TODO: check!
 
 \subsection{Security Analysis of Incentivized Construction}
 We assume there exists a fixed per-block risk-free rate $r$, as outlined in Section~\ref{subsection:prelim-rfr}.
@@ -50,11 +49,11 @@ We assume there exists a fixed per-block risk-free rate $r$, as outlined in Sect
     Therefore, a committee member will only be paid its reward of $\frac{f}{n}$ if it submits a valid share.
     Let $d$ be the maximum lifetime of the secret.
     Since the committee member also deposits its collateral for $d$ blocks, the committee member's time-valued net compensation is
-    \begin{align*}
-        \frac{f}{n} - o &= \frac{f}{n} - (\frac{a}{n - t + 1} - \frac{f}{n})((1 + r)^d - 1) \\
-        &= \frac{f}{n} - (\frac{\frac{f}{n}(1 + r)^d - \beta}{(1 + r)^d - 1} - \frac{f}{n})((1 + r)^d - 1) \\
-        &= \beta
-    \end{align*}
+    \begin{equation*}
+        \frac{f}{n} - o = \frac{f}{n} - (\frac{a}{n - t + 1} - \frac{f}{n})((1 + r)^d - 1) = \beta
+        % &= \frac{f}{n} - (\frac{\frac{f}{n}(1 + r)^d - \beta}{(1 + r)^d - 1} - \frac{f}{n})((1 + r)^d - 1) \\
+        % &= \beta
+    \end{equation*}
 \end{proof}
 \begin{theorem}{Correctness (Informal).}
     Consider an honest dealer, and a committee of size $n$ such that all maintain sufficient collateral for the holding $f$ and at least $t$ members are rational.

@@ -1,6 +1,8 @@
 \section{Construction}\label{section:construction_without_incentives}
 The Cassiopeia smart contract is instantiated for a fixed committee with known public keys of size $n$ and a threshold $t$.
-The threshold $t$ is a public parameter indicating the minimum number of honest committee members required for the construction to be secure.
+The threshold $t$ is a public parameter indicating the minimum number of honest committee members required for the construction to be correct and secure.
+Correctness means that the secret can be decrypted if the witness becomes available.
+Security means no information about the secret can be obtained unless a witness becomes available.
 
 Suppose the dealer wants to perform \emph{social} Witness Encryption with public witness security on a message $m$ (Algorithm~\ref{alg:dealer_no_incentives}).
 First, the dealer chooses a relation $\mathcal{R}$ and a corresponding instance $x$.
@@ -8,17 +10,17 @@ First, the dealer chooses a relation $\mathcal{R}$ and a corresponding instance 
 Then, the dealer generates a random bit string $s$ that can be simultaneously used as the secret in a PVSS scheme and the key of a symmetric encryption scheme. % Security of symmetric encryption scheme?
 The dealer runs \textsf{PVSS.genDist}$(s, [pk_i])$ to generate the encrypted secret shares $[\hat{s}_i]$ along with a proof $\pi_D$ that the generated encrypted secret shares are consistent with one another.
 Note that a valid proof $\pi_D$ guarantees that \textsf{Cassiopeia.encrypt} prevents committee members from maintaining shares of invalid secrets.
-It becomes vital to security in the incentivized construction in Section~\ref{section:construction_incentives}.
+It becomes vital to correctness in the incentivized construction in Section~\ref{section:construction_incentives}.
 
 Denote $c = ([\hat{s}_i], \pi_D)$ as the \emph{PVSS ciphertext}.
 Using a symmetric encryption scheme, the dealer encrypts $m$ with the key $s$ to produce $\hat{c} = Enc_s(m)$.
 The dealer calls the smart contract function \textsf{encrypt} to register the PVSS ciphertext and instance on chain.
 The contract checks whether the proof $\pi_D$ is valid, and if so, makes the encrypted secret shares available to the committee members. 
 A unique identifier for the secret $id$ is returned.
-Subsequently, $\hat{c}$ is dispersed publicly, either off-chain to optimize gas costs or on-chain for data availability.
+Subsequently, $\hat{c}$ is dispersed to \emph{public storage} (using the function \textsf{disperse}), either off-chain to optimize gas costs (e.g. IPFS) or on-chain for data availability.
 
 \begin{algorithm}[h]
-\caption{Subroutine: dealer performing Witness Encryption}
+\caption{Off-chain procedure run by dealer to witness-encrypt a secret}
 \label{alg:dealer_no_incentives}
     \begin{algorithmic}[1]
         \Function{$\text{\sf WE.Enc}_{\mathcal{R}}$}{$1^{\lambda}, x, m$}
@@ -26,7 +28,7 @@ Subsequently, $\hat{c}$ is dispersed publicly, either off-chain to optimize gas 
             \State $\hat{c} \gets Enc_s(m)$
             \State $c \gets \textsf{PVSS.genDist}(s, [pk_i])$
             \State $y \gets H(s \concat c \concat \mathcal{R} \concat x)$
-            \State $\pi \gets P(\sigma, (c, \mathcal{R}, x, y, [pk_i]), s)$
+            \State $\pi \gets P(\sigma, (c, \mathcal{R}, x, y, [pk_i]), s)$\label{alg:dealer_no_incentives:proof}
             \State $id \gets \textsf{Cassiopeia.encrypt}(c, \mathcal{R}, x, y, \pi)$
             \State $\textsf{disperse}(id, \hat{c})$ % IMPORTANT: dealer MUST be honest for secret recovery right?
         \EndFunction
@@ -43,19 +45,19 @@ Now, committee members will decrypt their encrypted shares $\hat{s}_i$ and submi
 A committee member does so by first using \textsf{PVSS.decrypt} to obtain a decryption $s'_i$ and a proof $\pi_i$ that $s'_i$ is a valid decryption, i.e. $s'_i = s_i$.
 The committee member then submits the share on-chain by calling the smart contract function \textsf{submitShare}, which verifies the proof and stores $s'_i$ in the set of decrypted shares $S_{id}$ inside the contract.
 Once $|S_{id}| \geq t$, anyone can reconstruct the secret $s$ using \textsf{PVSS.reconstruct}.
-To obtain the original message, $\hat{c}$ is fetched from public storage and decrypted using $s$ as the key to produce $m = Dec_s(\hat{c})$.
+To obtain the original message, $\hat{c}$ is fetched from \emph{public storage} (using the function \textsf{fetch}) and decrypted using $s$ as the key to produce $m = Dec_s(\hat{c})$.
 Note that for our correctness proof to follow, we assume committee members submit their shares within $\Delta$ blocks of the secret being claimed, where $\Delta$ is a fixed parameter.
 The full decryption procedure is written in pseudocode below.
 
 \begin{algorithm}[h]
-    \caption{Decryption Procedure (performed by anybody)}
+    \caption{Off-chain decryption procedure run by anyone in possession of the witness $w$}
     \label{alg:decryption_no_incentives}
     \begin{algorithmic}[1]
         \Let{id}{\text{identifier of secret to decrypt}}
         \Function{$\text{\sf WE.Dec}_{\mathcal{R}}$}{$1^{\lambda}, c, x, w$}
             \State $\textsf{Cassiopeia.claim}(id, w)$
             \CommentLine{Wait for committee members to submit shares}
-            \On{$|\textsf{Cassiopeia}.S_{id}| \geq t$}
+            \On{$|\textsf{Cassiopeia}.S_{id}| \geq t$}\Comment{Monitor smart contract for state change}
                 \State $s \gets \textsf{reconstruct}(\textsf{Cassiopeia}.S_{id})$
                 \State $\textsf{fetch}(\hat{c})$
                 \State $m \gets Dec_s(\hat{c})$
@@ -65,11 +67,11 @@ The full decryption procedure is written in pseudocode below.
 \end{algorithm}
 
 \begin{algorithm}[h]
-    \caption{Subroutine: committee members submitting shares}
+    \caption{Off-chain procedure run by any committee member submitting shares}
 \label{alg:committee_member_no_incentives}
     \begin{algorithmic}[1]
         \Let{i}{\text{index of own public key in $[pk_i]$}}
-        \On{$\textsf{Cassiopeia}.M_{id} = \textsc{claimed}$}
+        \On{$\textsf{Cassiopeia}.M_{id} = \textsc{claimed}$}\Comment{Monitor smart contract for state change}
             \State $([\hat{s}_i], \pi_D) \gets \textsf{Cassiopeia}.C_{id}.c$
             \State $(s'_i, \pi_i) \gets \textsf{PVSS.decrypt}(\hat{s}_i, sk_i)$
             \State $\textsf{Cassiopeia.submitShare}(s'_i, \pi_i, id, i)$
@@ -83,9 +85,9 @@ The adversary can act as a malicious dealer, calling \textsf{encrypt} with $c$ a
 Therefore, the adversary can bypass the requirement of finding a valid witness $w$ for $x$ to decrypt the secret encoded by $c$.
 
 To mitigate this issue, we ask the dealer to provide a proof in zero knowledge that he knows $s$ and he intends to encrypt $s$ with the instance $x$.
-In particular, the dealer generates a commitment to the secret and ciphertext, tying it to $\mathcal{R}$ and $x$ by computing $y = H(s \concat c \concat \mathcal{R} \concat x)$, where $H$ is a hash function that approximates a random oracle.
-The dealer then generates a zkSNARK proof of knowledge of $s$ (Algorithm~\ref{alg:snark_circuit}) such that if the encrypted shares were decrypted and recombined, the result would be $s$, and that $y = H(s \concat c \concat \mathcal{R} \concat x)$.
-More formally, the proof $\pi = P(\sigma, (c, \mathcal{R}, x, y, [pk_i]), s)$.
+In particular, the dealer generates a commitment to the secret and ciphertext, tying it to $\mathcal{R}$ and $x$ by computing $y = H(s \concat c \concat \mathcal{R} \concat x)$, where $H$ is a hash function modeled as a random oracle.
+The dealer then generates a zkSNARK proof of knowledge of $s$ such that if the encrypted shares were decrypted and recombined, the result would be $s$, and that $y = H(s \concat c \concat \mathcal{R} \concat x)$.
+More formally, the dealer generates the proof $\pi = P(\sigma, (c, \mathcal{R}, x, y, [pk_i]), s)$ in Line~\ref{alg:dealer_no_incentives:proof} of Algorithm~\ref{alg:dealer_no_incentives} using the boolean circuit in Algorithm~\ref{alg:snark_circuit}.
 Without knowledge of $s$, an adversarial dealer cannot use the same ciphertext $c$ with another instance $x'$.
 
 \begin{algorithm}
@@ -135,3 +137,6 @@ The Cassiopeia smart contract is written in pseudocode in Algorithm~\ref{alg:cas
         \EndContract
     \end{algorithmic}
 \end{algorithm}
+% To recap, the dealer first witness-encrypts a message off-chain and submits a request to the smart contract (Algorithm~\ref{alg:cassiopeia_no_incentives}) using Algorithm~\ref{alg:dealer_no_incentives}, then anyone with the witness can call Algorithm~\ref{alg:decryption_no_incentives} to start decryption.
+% As soon as the witness is revealed, committee members start submitting their shares (Algorithm~\ref{alg:committee_member_no_incentives}), and decryption is complete once at least $t$ committee members have submitted their shares.
+% Subsequently, anyone who wants to recover the message can do so by observing the smart contract state.

@@ -30,15 +30,16 @@ Instead, it is transferred back to the dealer.
 
 % Sad path, define amount to slash
 Now consider the case where the secret is irrecoverable.
-In particular, there are less than $t$ honest committee members who submit their shares.
+In particular, there are less than $t$ committee members who submit their shares, so there are less than $t$ honest committee members.
 Every dishonest committee member has their collateral slashed equally, on top of already not receiving their reward.
-Note that we mentioned in Section~\ref{section:construction_without_incentives} that the proof $\pi_D$ is needed to ensure correctness incentives in this scheme.
-This is because if we did not check that the PVSS output was consistent, the adversary could generate invalid secret shares, yet the committee members would be slashed.
+The reparation price must be recoverable even if only $n - t + 1$ parties are dishonest, and they are the only ones slashed (the number of honest parties in this case is $t - 1$).
+Let $b$ be the amount of collateral slashed per committee member, and suppose the reparation price is $a$.
+The sum of every dishonest committee member's slashed collateral and forfeited reward must add up to at least $a$, therefore each dishonest committee member is slashed exactly $b \gets \frac{a}{n - t + 1} + \frac{f}{n}$.
 
-Suppose only $t'$ committee members reveal valid shares and the reparation price is $a$.
-The sum of every dishonest committee member's slashed collateral and forfeited reward must add up to $a$.
-Therefore, the amount of collateral slashed per committee member $b = \frac{a}{n - t'} - \frac{f}{n}$.
-The contract keeps track of the collateral balance $cl_i$ for each committee member $i$ that is deducted when slashed and added to when rewards are earned from submitting valid shares.
+To ensure the contract can use a committee member's collateral to pay the reparation price, the committee member must have deposited at least $b$ inside the contract before \textsf{encrypt} can be called.
+The contract keeps track of an escrow balance $cl_i$ for each committee member $i$ that is used as collateral.
+Whenever the committee member is slashed, $cl_i$ is deducted.
+Whenever the committee member earns rewards (i.e. committee member $i$ submits a valid share), $cl_i$ is added to.
 We introduce a function \textsf{slash} (Algorithm~\ref{alg:slash}) that slashes committee members and transfers the reparation price to the dealer as outlined above.
 
 \begin{algorithm}[h]
@@ -50,8 +51,7 @@ We introduce a function \textsf{slash} (Algorithm~\ref{alg:slash}) that slashes 
                 \State $\{\textsf{dealer}, a, f, \dots\} \gets C_{id}$
                 \State $t' \gets |S_{id}|$
                 \State $G \gets 0$
-                \State $b \gets \frac{a}{n - t'} + \frac{f}{n}$
-                \State $\hat{b} \gets \frac{a}{n - t + 1} + \frac{f}{n}$ \Comment{Equation~\ref{eq:collateral_requirement}}
+                \State $b \gets \frac{a}{n - t + 1} + \frac{f}{n}$ \Comment{Equation~\ref{eq:collateral_requirement}}
                 \For{$i \in [n]$}
                     \If{$S_{id,i} = \bot$}
                         \If{$t' < t$}
@@ -62,35 +62,26 @@ We introduce a function \textsf{slash} (Algorithm~\ref{alg:slash}) that slashes 
                     \EndIf
                 \EndFor
                 \State $\textsf{dealer.send}(G)$
-                \State $l \gets l - \hat{b}$ 
+                \State $l \gets l - b$ 
                 \State $M_{id} \gets \textsc{slashed}$
             \EndFunction
     \end{algorithmic}
 \end{algorithm}
-
-% Amount of collateral needed to lock
-To ensure the contract can use a committee member's collateral to pay the reparation price, the committee member must have deposited at least $b$ inside the contract before \textsf{encrypt} can be called.
-However, the number of honest committee members who will submit valid shares $t'$ is unknown at the time of an \textsf{encrypt} request.
-Therefore, the contract must ensure that each committee member has deposited at least the maximum slashable amount given the reparation price.
-Let $\hat{b}$ be the amount of funds a committee member is required to deposit.
-\begin{equation}\label{eq:collateral_requirement}
-    \hat{b} = \max_{0 \leq t' \leq t - 1} b = \frac{a}{n - t + 1} - \frac{f}{n}
-\end{equation}
 
 % Opp cost
 Notice that each committee member's collateral is locked inside the contract for the lifetime of the secret.
 However, the locked funds do not earn interest, which introduces an opportunity cost for committee members.
 To incentivize committee members to participate in the protocol honestly, the reward must be higher than the opportunity cost.
 Concretely, let $d$ be the \emph{maximum lifespan} of the secret in blocks, and $\beta$ be the agreed-upon time value of the net profit for honest committee members.
-The opportunity cost for locking $\hat{b}$ as collateral inside the contract for $d$ blocks is
+The opportunity cost for locking $b$ as collateral inside the contract for $d$ blocks is
 \begin{equation}\label{eq:opp_cost}
-    o = \hat{b}((1 + r)^d - 1)
+    o = b((1 + r)^d - 1)
 \end{equation}
 where $r$ is the per-block risk-free rate agreed upon by all committee members.
 Now, we can derive the reparation price $a$ instead of assuming it is given to the smart contract.
 Using $\beta = \frac{f}{n} - o$, Equation~\ref{eq:collateral_requirement} and Equation~\ref{eq:opp_cost}, we have:
 \begin{gather}\label{eq:collateral_from_holding_fee}
-    % \frac{f}{n} = \beta + \hat{b}((1 + r)^d - 1) \\
+    % \frac{f}{n} = \beta + b((1 + r)^d - 1) \\
     % \frac{f}{n} = \beta + (\frac{a}{n - t + 1} - \frac{f}{n})((1 + r)^d - 1) \\ 
     % \frac{f}{n}(1 + r)^d = \beta + (\frac{a}{n - t + 1})((1 + r)^d - 1) \\
     % \frac{f}{n}(1 + r)^d - \beta = \frac{a}{n - t + 1}((1 + r)^d - 1) \\
@@ -106,12 +97,15 @@ Therefore, we require the dealer to also provide the maximum number of blocks $T
 Let $st$ be the block where the encryption request was first made.
 We modify the original \textsf{claim} function to start decryption at block $st + T$ even if no valid witness has been revealed.
 Alternatively, the protocol could also be defined such that all secret shares are destroyed after time $st + T$.
+Note that we mentioned in Section~\ref{section:construction_without_incentives} that the proof $|pi_D$ is needed to ensure correctness incentives in this scheme.
+This is because if we did not check that the PVSS output was consistent, the adversary could generate invalid secret shares, yet the committee members would be slashed.
 
-The lifespan of the secret also includes the number of blocks between when the secret is claimed and when committee members are slashed, after which the secret can be decrypted.
+The lifespan of the secret also includes the number of blocks between when the secret is claimed and when committee members are slashed.
 For the maximum lifespan of the secret to be known, everyone must agree upon a share submission deadline $D_{id}$ after which committee members are slashed.
 The deadline $D_{id}$ is set to $\Delta$ blocks (corresponding to the liveness parameter of the blockchain~\cite{backbone}) after the secret is claimed.
 Honest committee members must submit their shares by block $D_{id}$.
 Therefore, the secret's maximum lifespan is $d = T + \Delta$, and is known at encryption time.
+After the secret's lifespan, the secret can be decrypted by observing the smart contract state.
 We modify the \textsf{claim} function as in Algorithm~\ref{alg:claim}.
 
 \begin{algorithm}[h]
@@ -131,8 +125,8 @@ We modify the \textsf{claim} function as in Algorithm~\ref{alg:claim}.
 % Many secrets liabilities
 We call a secret \emph{active} if \textsf{slash} has not been called for the secret.
 Because many secrets may be active, the contract must ensure it has sufficient funds in escrow to cover all potential reparations.
-Let $l$ be the sum of $\hat{b}$ for all secrets.
-In {\sf encrypt}, the contract ensures the remaining collateral $cl_i - l$ is at least the new secret's $\hat{b}$.
+Let $l$ be the sum of $b$ for all secrets.
+In {\sf encrypt}, the contract ensures the remaining collateral $cl_i - l$ is at least the new secret's $b$.
 The fully modified \textsf{encrypt} function is shown below in Algorithm~\ref{alg:encrypt_incentives}.
 
 \begin{algorithm}[h]
@@ -145,11 +139,11 @@ The fully modified \textsf{encrypt} function is shown below in Algorithm~\ref{al
                 \State $f \gets \textsf{msg.value}$
 
                 \State $a \gets \frac{(\frac{f}{n}(1 + r)^d - \beta)(n - t + 1)}{(1 + r)^d - 1}$ \Comment{Equation~\ref{eq:collateral_from_holding_fee}}
-                \State $\hat{b} \gets \frac{a}{n - t + 1} - \frac{f}{n}$ \Comment{Equation~\ref{eq:collateral_requirement}}
+                \State $b \gets \frac{a}{n - t + 1} - \frac{f}{n}$ \Comment{Equation~\ref{eq:collateral_requirement}}
                 \For{$i \in [n]$}
-                    \State require($cl_i \geq l + \hat{b}$)
+                    \State require($cl_i \geq l + b$)
                 \EndFor
-                \State $l \gets l + \hat{b}$
+                \State $l \gets l + b$
                 \State $st \gets \textsf{block.number}$
 
                 \CommentLine{Verify PVSS and zkSNARK}

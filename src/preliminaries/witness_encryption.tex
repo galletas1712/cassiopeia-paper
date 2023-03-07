@@ -8,4 +8,3 @@
         \item \emph{Correctness}: For any plaintext message $m$, instance $x \in \mathcal{L}$, and witness $w$ such that $(x, w) \in \mathcal{R}$, $\textsf{WE.Dec}_\mathcal{R}(\textsf{WE.Enc}_\mathcal{R}(1^{\lambda}, x, m), x, w) = m$.
         \item \emph{Extractable Security}: A PPT adversary given $c = \textsf{WE.Enc}_\mathcal{R}(1^{\lambda}, x, m)$ is only able to extract information about $m$ if she can also produce a witness $w$ such that $(x, w) \in \mathcal{R}$, except with negligible probability.
     \end{itemize}
-    % TODO: do we need to mention this isn't the complete definition?
