@@ -204,6 +204,19 @@ Practical On-Chain Witness Encryption
 \bibliography{biblio}
 \import{./}{appendix.tex}
 
+\newpage
+\textbf{Review response:}
+Applications of WE were expanded upon in the introduction, along with mention of zkSNARKs, risk-free rate, and a deadline.
+We added intuition for why $\pi_D$ and $\pi$ are needed in Sections 3 and 4 and clarified how the algorithms relate to one another and the broader scheme.
+In Section 4, we introduce $a$ as fixed, and derive $b$ from $a$ to clear up confusion.
+We added a conclusion and noted that the implementation only includes the non-incentivized version in the implementation section.
+We also expanded on the implications of using BN254 (not a SNARK friendly curve).
+We briefly outline how to support private decryption through having the instance itself be a zkSNARK in Section 3.
+The reference to security in Section 4 refers to the definition of extractable security given in the preliminaries section.
+The claim step is needed to notify committee members that a witness has been submitted. Without it, committee members would have no way of knowing whether the witness was presented, and for the incentivized version of the protocol, it would not be possible to start the grace period for committee members to submit their shares.
+All typos have been fixed.
+We added the suggested citation to the suggested survey of functional encryption.
+
 \end{document}
 
 
