@@ -1,13 +1,5 @@
 \section{Introduction}
 
-% Hook - a will, a secret encrypted into the future - literary (message in a bottle)
-% Problem statement (people wanted to do timelock and witness encryption for a long time)
-% Without blockchains it's completely impractical
-% New assumption of honest majority in blockchains - ask a committee to keep a secret and release it for us after a certain time
-% We want to make this composable for use in DeFi
-% Make accessible as a service on chain - accountability
-% In the blockchain setting, timelock is only a special case of Witness Encryption
-
 Witness Encryption ~\cite{witness_encryption} is a cryptographic scheme where a message is encrypted such that it can only be decrypted when a solution (also called the ``witness'') to a computational puzzle is presented.
 For example, a message may be witness-encrypted such that it can only be decrypted if for some connected graph, a Hamiltonian cycle is found.
 A particularly useful instantiation of Witness Encryption in the blockchain setting is Timelock Encryption ~\cite{timelock_puzzles,timelock_from_crc,timed_release_cryptography}, where a message is encrypted such that it can only be decrypted after a set unlock time.
@@ -26,14 +18,10 @@ Furthermore, we hold committee members accountable for releasing correct decrypt
     \item We implement the construction as an open-source Solidity smart contract, benchmark gas usage on Ethereum, and provide our parameterization of the scheme.
 \end{enumerate}
 
-Traditionally Witness Encryption schemes require the witness to remain private during decryption.
-However, in many practical use cases, a public witness is useful as the secret does not remain hidden.
-We focus on constructing Witness Encryption with public witness security, but it is possible to extend our scheme to support private decryption.
-
 \paragraph{Construction Overview.}
 Suppose Alice wants to encrypt a secret with an instance of a puzzle.
 Alice will entrust a fixed committee to keep her secret and release it if someone presents a solution to the puzzle to the smart contract.
-She trusts that at a majority of the committee are honest.
+She trusts that the majority of the committee are honest.
 Alice splits her secret into shares, one for each committee member, such that a majority of them are required to reconstruct the original secret and each committee member is only able to decrypt its own share.
 Alice then calls a smart contract function to publish the encrypted shares for them to access.
 She also attaches a zero-knowledge proof of knowledge of the secret (in the form of a zkSNARK) to ensure she is honest and actually knows the secret.
@@ -43,9 +31,9 @@ When a committee member submits a share, the contract verifies that it is consis
 As long as at least a majority of the committee members revealed their shares, Alice's secret can be reconstructed by anyone.
 
 We also propose an incentivized version of the above scheme which includes fees and slashing.
-Each committee member deposits a stake in the contract.
+Each committee member deposits collateral into the contract.
 If a committee member correctly reveals its decrypted shares, it is awarded a fee.
-Otherwise, its stake is slashed.
+Otherwise, its collateral is slashed.
 We ensure the fee is sufficient to incentivize honest committee member participation, using the risk-free rate as a benchmark for the opportunity cost.
 Note that the incentivized version of the scheme requires Alice to provide a maximum secret lifespan upfront after which the secret can be decrypted even without a witness.
 
@@ -57,9 +45,8 @@ One alternative is to use weaker variants of Witness Encryption that encompass o
 
 % Committee
 Another alternative to build practical Witness Encryption, which we explore in this work, is to do \emph{social witness encryption} where a committee is entrusted up to an adversarial threshold.
-Goyal et al.~\cite{eweb} were the first to propose an extractable social Witness Encryption scheme constructed from Proactive Secret Sharing (PSS) that leverages a blockchain.
-The construction can use a Proof-of-Stake blockchain's validators as the committee.
-It also allows for the witness to remain private after decryption.
+Goyal et al.~\cite{eweb} were the first to propose an extractable social Witness Encryption scheme constructed from Proactive Secret Sharing (PSS) that leverages a blockchain and its Proof-of-Stake validators as the committee.
+Though there have been multiple previous works proposing social WE equivalents~\cite{mcfly, campanelli,eweb}, we are the first to provide an incentivized smart contract instantiation.
 One particularly useful application of Witness Encryption and blockchains is Timelock Encryption~\cite{timelock_puzzles,timelock_from_crc,timed_release_cryptography}.
 Social Timelock Encryption leveraging Identity-Based Encryption (IBE)~\cite{ibe} has been put forth in i-TiRE~\cite{i-TiRE} and tlock~\cite{tlock}.
 Dottling et al.~\cite{mcfly} proposed a social Timelock Encryption scheme using a weaker Signature-based Witness Encryption (SWE) scheme.

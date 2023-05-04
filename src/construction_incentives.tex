@@ -13,7 +13,7 @@ The larger the reparation price, the larger the holding fee must be.
 He begins the Witness Encryption procedure by paying the holding fee into the contract.
 The holding fee is the incentive for committee members to participate honestly in the protocol.
 At the same time, each committee member puts in a certain \emph{collateral}, which is held by the contract in escrow until the completion of protocol.
-In case a majority of committee members are dishonest, and the secret is irrecoverable, the slashing amounts are sufficient to add up to the reparation price which is used to appease the dealer in the case of failure.
+If the majority of committee members are dishonest and the secret is irrecoverable, the slashing amounts are sufficient to add up to the reparation price which is used to appease the dealer in the case of failure.
 
 % Happy path
 Consider the happy path, where the dealer and all committee members are honest.
@@ -81,14 +81,17 @@ Let $\hat{b}$ be the amount of funds a committee member is required to deposit.
 Notice that each committee member's collateral is locked inside the contract for the lifetime of the secret.
 However, the locked funds do not earn interest, which introduces an opportunity cost for committee members.
 To incentivize committee members to participate in the protocol honestly, the reward must be higher than the opportunity cost.
-Concretely, let $d$ be the \emph{maximum lifespan} of the secret in blocks, and $\beta$ be the agreed-upon time value of the net profit for honest committee members.
+Concretely, let $d$ be the \emph{maximum lifespan} of the secret in blocks.
 The opportunity cost for locking $\hat{b}$ as collateral inside the contract for $d$ blocks is
 \begin{equation}\label{eq:opp_cost}
     o = \hat{b}((1 + r)^d - 1)
 \end{equation}
 where $r$ is the per-block risk-free rate agreed upon by all committee members.
-Now, we can derive the reparation price $a$ instead of assuming it is given to the smart contract.
-Using $\beta = \frac{f}{n} - o$, Equation~\ref{eq:collateral_requirement} and Equation~\ref{eq:opp_cost}, we have:
+
+In fact, we will see that the reparation price $a$ is limited by the fee and the risk free rate.
+Intuitively, the higher the risk free rate is and the lower the fee is, the lower the maximum reparation price will be.
+Suppose committee members agree upon a target time-valued net profit $\beta$ for honest committee members, where $\beta = \frac{f}{n} - o$.
+Combining this with Equation~\ref{eq:collateral_requirement} and Equation~\ref{eq:opp_cost}, we have that the maximum value of $a$ is:
 \begin{gather}\label{eq:collateral_from_holding_fee}
     % \frac{f}{n} = \beta + \hat{b}((1 + r)^d - 1) \\
     % \frac{f}{n} = \beta + (\frac{a}{n - t + 1} - \frac{f}{n})((1 + r)^d - 1) \\ 
@@ -99,7 +102,7 @@ Using $\beta = \frac{f}{n} - o$, Equation~\ref{eq:collateral_requirement} and Eq
 \end{gather}
 
 % Timelock
-We would like the contract to compute the reparation price $a$ directly from the holding fee.
+Instead of letting the user specify the reparation price, we would like the contract to compute the reparation price $a$ directly from the holding fee.
 To do so, the maximum lifespan of the secret $d$ must be known.
 However, for an arbitrary relation $\mathcal{R}$ the witness may take an arbitrary amount of time to be found.
 Therefore, we require the dealer to also provide the maximum number of blocks $T$ that committee members will keep the secret for.
@@ -107,7 +110,7 @@ Let $st$ be the block where the encryption request was first made.
 We modify the original \textsf{claim} function to start decryption at block $st + T$ even if no valid witness has been revealed.
 Alternatively, the protocol could also be defined such that all secret shares are destroyed after time $st + T$.
 
-The lifespan of the secret also includes the number of blocks between when the secret is claimed and when committee members are slashed, after which the secret can be decrypted.
+The lifespan of the secret $d$ also includes the number of blocks between when the secret is claimed and when committee members are slashed, after which the secret can be decrypted.
 For the maximum lifespan of the secret to be known, everyone must agree upon a share submission deadline $D_{id}$ after which committee members are slashed.
 The deadline $D_{id}$ is set to $\Delta$ blocks (corresponding to the liveness parameter of the blockchain~\cite{backbone}) after the secret is claimed.
 Honest committee members must submit their shares by block $D_{id}$.
